@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
 import { isStaleDeal } from "@/lib/staleDeal";
 import { STALE_DEAL_DAYS } from "@/lib/config";
+import CreateUserForm from "@/components/CreateUserForm";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,10 @@ export default async function AdminOverviewPage() {
               Pending review
             </Link>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <CreateUserForm dealers={dealers.map((d) => ({ id: d.id, name: d.name }))} />
         </div>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
