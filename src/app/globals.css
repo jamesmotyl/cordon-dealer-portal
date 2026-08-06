@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --navy: #2b475c;
+  --orange: #e66a2c;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--navy);
+  background-color: #f7f8fa;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-sm bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center rounded-sm bg-orange px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-sm border border-navy-200 bg-white px-4 py-2 text-sm font-medium text-navy transition hover:bg-navy-50 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .input {
+    @apply w-full rounded-sm border border-navy-200 bg-white px-3 py-2 text-sm text-navy placeholder:text-navy-300 focus:border-orange focus:outline-none focus:ring-1 focus:ring-orange;
+  }
+  .card {
+    @apply rounded-sm border border-navy-100 bg-white shadow-sm;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-navy-400;
+  }
+}

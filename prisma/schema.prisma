@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  DEALER_USER
+  DEALER_ADMIN
+  INTERNAL_ADMIN
+}
+
+// Cordon's internal exclusivity check: is another dealer already working this
+// vineyard? Not shown to dealers — this is separate from the client-facing
+// pipeline stage below.
+enum RegistrationState {
+  PENDING // just submitted, conflict check not yet resolved
+  CLEARED // no conflicting registration (or admin approved over one) — dealer holds exclusivity
+  REJECTED // lost to another dealer's claim on the same vineyard
+  EXPIRED // exclusivity window lapsed with no resolution
+}
+
+// The client-engagement stage, matching Cordon/Vinescapes' existing tracker
+// vocabulary exactly. A flat dropdown, not an enforced pipeline — any stage
+// can be selected at any time, same as the spreadsheet it replaces.
+enum LeadStage {
+  CLIENT_EXPRESSED_INTEREST
+  PRODUCT_RECOMMENDED
+  CLIENT_WANTS_QUOTE
+  CLIENT_WANTS_TO_TALK_TO_CORDON
+  CLIENT_WANTS_ADVICE_FROM_DEALER
+}
+
+enum QuoteStatus {
+  NEEDS_QUOTE
+  QUOTE_SENT
+  QUOTE_ACCEPTED
+  QUOTE_DECLINED
+  INVOICED
+}
+
+// Shared by roiStatus and productOptionsStatus below — same "who owes this,
+// is it done" checklist the spreadsheet uses for both columns. DEALER_* is
+// shown as the actual dealer's name in the UI (the sheet hardcodes
+// "Vinescapes", but the model stays dealer-agnostic).
+enum TaskStatus {
+  DEALER_TODO
+  DEALER_DONE
+  CORDON_TODO
+  CORDON_DONE
+}
+
+model Dealer {
+  id        String   @id @default(cuid())
+  name      String
+  region    String?
+  tier      String? // e.g. "Standard" / "Preferred" / "Premier" — plain string until real tier list is known
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  users  User[]
+  leads  Lead[]
+  orders Order[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(DEALER_USER)
+  createdAt    DateTime @default(now())
+
+  // null for internal Cordon staff (INTERNAL_ADMIN); set for dealer_user / dealer_admin
+  dealerId String?
+  dealer   Dealer? @relation(fields: [dealerId], references: [id])
+
+  approvedLeads Lead[]        @relation("ApprovedBy")
+  activityLogs  ActivityLog[]
+  notes         Note[]
+
+  @@index([dealerId])
+}
+
+model Lead {
+  id           String @id @default(cuid())
+  customerName String
+  company      String?
+  region       String?
+  phone        String?
+  email        String?
+
+  // Who at the dealer surfaced this lead. Simple text, auto-filled from the
+  // submitting user's name at creation — not a separate role or permission.
+  leadGeneratorName String?
+
+  registrationState RegistrationState @default(PENDING)
+  stage             LeadStage         @default(CLIENT_EXPRESSED_INTEREST)
+
+  quoteStatus   QuoteStatus @default(NEEDS_QUOTE)
+  quotedAt      DateTime?
+  quoteValueGbp Float?
+
+  roiStatus            TaskStatus?
+  productOptionsStatus TaskStatus?
+
+  // Stubbed for phase 2 (commission tracking) — not surfaced in the UI yet.
+  commission Float?
+
+  dealerId String
+  dealer   Dealer @relation(fields: [dealerId], references: [id])
+
+  approvedById String?
+  approvedBy   User?     @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedAt   DateTime?
+
+  // Set on a REJECTED lead when it lost a same-company conflict to another
+  // dealer's registration, pointing at the lead that was approved instead.
+  resolvedByLeadId String?
+  resolvedByLead    Lead?  @relation("ConflictResolution", fields: [resolvedByLeadId], references: [id])
+  resolvedAgainst   Lead[] @relation("ConflictResolution")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+
+  orders       Order[]
+  notes        Note[]
+  activityLogs ActivityLog[]
+
+  @@index([dealerId])
+  @@index([registrationState])
+}
+
+model Order {
+  id       String @id @default(cuid())
+  dealerId String
+  dealer   Dealer @relation(fields: [dealerId], references: [id])
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  // Parallel arrays per spec (items[i] <-> quantities[i]). No product catalog exists yet,
+  // so this stays loose JSON rather than a normalized OrderItem table.
+  items      Json
+  quantities Json
+
+  status    String   @default("PENDING") // no fixed value set given yet — plain string
+  createdAt DateTime @default(now())
+
+  @@index([dealerId])
+  @@index([leadId])
+}
+
+model Note {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Denormalized alongside leadId so dealer-scoped queries never need to join through Lead.
+  dealerId String
+
+  authorUserId String
+  author       User   @relation(fields: [authorUserId], references: [id])
+
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([dealerId])
+}
+
+// Placeholder for Cordon's internal sales pipeline until that system is integrated.
+// A matching row here means Cordon is already working this company directly.
+model InternalPipelineEntry {
+  id        String   @id @default(cuid())
+  company   String
+  region    String?
+  createdAt DateTime @default(now())
+
+  @@index([company])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
