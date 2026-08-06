@@ -22,9 +22,14 @@ export default async function AdminPage() {
               Full visibility across all dealers. Review new submissions and manage the approval workflow.
             </p>
           </div>
-          <Link href="/admin/conflicts" className="btn-outline whitespace-nowrap">
-            Pending review
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/overview" className="btn-outline whitespace-nowrap">
+              Overview
+            </Link>
+            <Link href="/admin/conflicts" className="btn-outline whitespace-nowrap">
+              Pending review
+            </Link>
+          </div>
         </div>
         <LeadsBoard role="INTERNAL_ADMIN" />
       </main>

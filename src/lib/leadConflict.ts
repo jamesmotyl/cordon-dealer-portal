@@ -1,6 +1,6 @@
 import { RegistrationState } from "@prisma/client";
 
-export { normalizeCompanyName } from "@/lib/normalizeCompanyName";
+export { normalizeVineyardName } from "@/lib/normalizeVineyardName";
 
 // Registration states that no longer represent a live exclusivity claim.
 const INACTIVE_STATES: RegistrationState[] = [RegistrationState.REJECTED, RegistrationState.EXPIRED];
@@ -10,15 +10,15 @@ export interface ConflictCandidate {
   registrationState: RegistrationState;
 }
 
-// True if another dealer already has a live claim on this company, or Cordon
+// True if another dealer already has a live claim on this vineyard, or Cordon
 // is already working it internally.
 export function hasLeadConflict(
   submittingDealerId: string,
-  otherCompanyLeads: ConflictCandidate[],
+  otherVineyardLeads: ConflictCandidate[],
   internalPipelineHit: boolean
 ): boolean {
   if (internalPipelineHit) return true;
-  return otherCompanyLeads.some(
+  return otherVineyardLeads.some(
     (lead) => lead.dealerId !== submittingDealerId && !INACTIVE_STATES.includes(lead.registrationState)
   );
 }

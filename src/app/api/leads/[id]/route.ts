@@ -65,8 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // dealers manage their own lead, admins manage any lead.
   const editableFields = [
     "customerName",
-    "company",
-    "region",
+    "vineyard",
     "phone",
     "email",
     "leadGeneratorName",

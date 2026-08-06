@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { LEAD_EXPIRATION_DAYS } from "@/lib/config";
-import { hasLeadConflict, normalizeCompanyName } from "@/lib/leadConflict";
+import { hasLeadConflict, normalizeVineyardName } from "@/lib/leadConflict";
 import { expireOverdueLeads } from "@/lib/leadTransitions";
 
 export async function GET(req: NextRequest) {
@@ -50,25 +50,25 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { customerName, company, region, phone, email } = body;
+  const { customerName, vineyard, phone, email } = body;
 
-  if (!customerName || !company) {
-    return NextResponse.json({ error: "Customer name and company are required" }, { status: 400 });
+  if (!customerName || !vineyard) {
+    return NextResponse.json({ error: "Customer name and vineyard are required" }, { status: 400 });
   }
 
-  const normalizedCompany = normalizeCompanyName(company);
+  const normalizedVineyard = normalizeVineyardName(vineyard);
 
-  const [otherCompanyLeads, internalPipelineHit] = await Promise.all([
+  const [otherVineyardLeads, internalPipelineHit] = await Promise.all([
     prisma.lead.findMany({
-      where: { company: { equals: normalizedCompany, mode: "insensitive" } },
+      where: { vineyard: { equals: normalizedVineyard, mode: "insensitive" } },
       select: { dealerId: true, registrationState: true },
     }),
     prisma.internalPipelineEntry.findFirst({
-      where: { company: { equals: normalizedCompany, mode: "insensitive" } },
+      where: { vineyard: { equals: normalizedVineyard, mode: "insensitive" } },
     }),
   ]);
 
-  const conflict = hasLeadConflict(user.dealerId, otherCompanyLeads, !!internalPipelineHit);
+  const conflict = hasLeadConflict(user.dealerId, otherVineyardLeads, !!internalPipelineHit);
 
   const now = new Date();
   const expiresAt = conflict
@@ -79,8 +79,7 @@ export async function POST(req: NextRequest) {
     const created = await tx.lead.create({
       data: {
         customerName,
-        company,
-        region: region || null,
+        vineyard,
         phone: phone || null,
         email: email || null,
         dealerId: user.dealerId as string,
@@ -96,8 +95,8 @@ export async function POST(req: NextRequest) {
         actorId: user.id,
         action: conflict ? "Lead submitted - flagged for admin review" : "Lead submitted - auto-approved",
         detail: conflict
-          ? `${company} conflicts with an existing lead or internal pipeline entry; sent to Cordon for review.`
-          : `${company} had no conflicts; approved automatically, expires ${expiresAt?.toDateString()}.`,
+          ? `${vineyard} conflicts with an existing lead or internal pipeline entry; sent to Cordon for review.`
+          : `${vineyard} had no conflicts; approved automatically, expires ${expiresAt?.toDateString()}.`,
       },
     });
 

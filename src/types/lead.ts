@@ -16,8 +16,7 @@ export interface ActivityLogEntry {
 export interface LeadWithRelations {
   id: string;
   customerName: string;
-  company: string | null;
-  region: string | null;
+  vineyard: string;
   phone: string | null;
   email: string | null;
   leadGeneratorName: string | null;

@@ -92,7 +92,6 @@ export default function LeadDetail({
           <p className="text-sm text-navy">{lead.customerName}</p>
           <p className="text-sm text-navy-400">{lead.phone || "No phone on file"}</p>
           <p className="text-sm text-navy-400">{lead.email || "No email on file"}</p>
-          {lead.region && <p className="text-sm text-navy-400">{lead.region}</p>}
         </div>
         <div>
           <label className="label">Submitted by</label>

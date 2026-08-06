@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { normalizeCompanyName } from "@/lib/normalizeCompanyName";
+import { normalizeVineyardName } from "@/lib/normalizeVineyardName";
 
 interface PendingLead {
   id: string;
   customerName: string;
-  company: string | null;
-  region: string | null;
+  vineyard: string;
   phone: string | null;
   email: string | null;
   createdAt: string;
@@ -32,14 +31,14 @@ export default function PendingConflictsBoard() {
       const data = await res.json();
       const leads: PendingLead[] = data.leads;
 
-      const byCompany = new Map<string, PendingLead[]>();
+      const byVineyard = new Map<string, PendingLead[]>();
       for (const lead of leads) {
-        const key = lead.company ? normalizeCompanyName(lead.company) : `no-company-${lead.id}`;
-        byCompany.set(key, [...(byCompany.get(key) ?? []), lead]);
+        const key = normalizeVineyardName(lead.vineyard);
+        byVineyard.set(key, [...(byVineyard.get(key) ?? []), lead]);
       }
-      const nextGroups = Array.from(byCompany.entries())
+      const nextGroups = Array.from(byVineyard.entries())
         .map(([key, groupLeads]) => ({ key, leads: groupLeads }))
-        .sort((a, b) => a.leads[0].company?.localeCompare(b.leads[0].company ?? "") ?? 0);
+        .sort((a, b) => a.leads[0].vineyard.localeCompare(b.leads[0].vineyard));
 
       setGroups(nextGroups);
     }
@@ -95,9 +94,7 @@ export default function PendingConflictsBoard() {
       {groups.map((group) => (
         <div key={group.key} className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-navy-100 bg-navy-50 px-4 py-2">
-            <p className="text-sm font-semibold text-navy">
-              {group.leads[0].company || "No company given"}
-            </p>
+            <p className="text-sm font-semibold text-navy">{group.leads[0].vineyard}</p>
             {group.leads.length > 1 && (
               <span className="rounded-sm border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700">
                 {group.leads.length} conflicting registrations
@@ -123,7 +120,6 @@ export default function PendingConflictsBoard() {
                 <div>
                   <p className="text-xs uppercase tracking-wide text-navy-400">Customer</p>
                   <p className="text-sm text-navy-600">{lead.customerName}</p>
-                  {lead.region && <p className="text-sm text-navy-400">{lead.region}</p>}
                   {lead.phone && <p className="text-sm text-navy-400">{lead.phone}</p>}
                   {lead.email && <p className="text-sm text-navy-400">{lead.email}</p>}
                 </div>

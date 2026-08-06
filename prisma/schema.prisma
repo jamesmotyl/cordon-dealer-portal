@@ -89,8 +89,7 @@ model User {
 model Lead {
   id           String @id @default(cuid())
   customerName String
-  company      String?
-  region       String?
+  vineyard     String
   phone        String?
   email        String?
 
@@ -118,7 +117,7 @@ model Lead {
   approvedBy   User?     @relation("ApprovedBy", fields: [approvedById], references: [id])
   approvedAt   DateTime?
 
-  // Set on a REJECTED lead when it lost a same-company conflict to another
+  // Set on a REJECTED lead when it lost a same-vineyard conflict to another
   // dealer's registration, pointing at the lead that was approved instead.
   resolvedByLeadId String?
   resolvedByLead    Lead?  @relation("ConflictResolution", fields: [resolvedByLeadId], references: [id])
@@ -178,11 +177,10 @@ model Note {
 // A matching row here means Cordon is already working this company directly.
 model InternalPipelineEntry {
   id        String   @id @default(cuid())
-  company   String
-  region    String?
+  vineyard  String
   createdAt DateTime @default(now())
 
-  @@index([company])
+  @@index([vineyard])
 }
 
 model ActivityLog {

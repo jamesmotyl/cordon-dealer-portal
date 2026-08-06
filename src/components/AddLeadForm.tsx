@@ -8,8 +8,7 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     customerName: "",
-    company: "",
-    region: "",
+    vineyard: "",
     phone: "",
     email: "",
   });
@@ -33,7 +32,7 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
       return;
     }
 
-    setForm({ customerName: "", company: "", region: "", phone: "", email: "" });
+    setForm({ customerName: "", vineyard: "", phone: "", email: "" });
     setOpen(false);
     onCreated();
   }
@@ -60,7 +59,7 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
       </div>
 
       <p className="text-xs text-navy-400">
-        Leads with no conflicts are approved automatically. If the company is already
+        Leads with no conflicts are approved automatically. If the vineyard is already
         registered by another dealer, or already in Cordon's internal pipeline, it's sent to
         Cordon for review instead.
       </p>
@@ -76,20 +75,12 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
           />
         </div>
         <div>
-          <label className="label">Company *</label>
+          <label className="label">Vineyard *</label>
           <input
             required
             className="input"
-            value={form.company}
-            onChange={(e) => setForm({ ...form, company: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="label">Region</label>
-          <input
-            className="input"
-            value={form.region}
-            onChange={(e) => setForm({ ...form, region: e.target.value })}
+            value={form.vineyard}
+            onChange={(e) => setForm({ ...form, vineyard: e.target.value })}
           />
         </div>
         <div>

@@ -77,7 +77,7 @@ async function main() {
   await createLead(
     {
       customerName: "Joe Bloggs",
-      company: "Best Grapes Vineyard",
+      vineyard: "Best Grapes Vineyard",
       phone: "07712345678",
       email: "joe@example.com",
       leadGeneratorName: "Joel",
@@ -103,8 +103,7 @@ async function main() {
   await createLead(
     {
       customerName: "Sandra Lee",
-      company: "Hillcrest Farms",
-      region: "Somerset",
+      vineyard: "Hillcrest Farms",
       phone: "07700123456",
       leadGeneratorName: "Sam",
       dealerId: vinescapes.id,
@@ -127,7 +126,7 @@ async function main() {
   await createLead(
     {
       customerName: "Mike Chen",
-      company: "Willowbrook Estate",
+      vineyard: "Willowbrook Estate",
       leadGeneratorName: "Joel",
       dealerId: vinescapes.id,
       registrationState: RegistrationState.PENDING,
@@ -137,7 +136,7 @@ async function main() {
   await createLead(
     {
       customerName: "M. Chen",
-      company: "Willowbrook Estate",
+      vineyard: "Willowbrook Estate",
       leadGeneratorName: "Alex",
       dealerId: northfield.id,
       registrationState: RegistrationState.PENDING,

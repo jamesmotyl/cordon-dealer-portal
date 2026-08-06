@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { isValidTransition } from "@/lib/leadTransitions";
-import { normalizeCompanyName } from "@/lib/normalizeCompanyName";
+import { normalizeVineyardName } from "@/lib/normalizeVineyardName";
 import { LEAD_EXPIRATION_DAYS } from "@/lib/config";
 
 // Clears one PENDING lead's exclusivity check and, if other dealers submitted
@@ -49,15 +49,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
     });
 
-    const siblings = lead.company
-      ? await tx.lead.findMany({
-          where: {
-            id: { not: lead.id },
-            registrationState: RegistrationState.PENDING,
-            company: { equals: normalizeCompanyName(lead.company), mode: "insensitive" },
-          },
-        })
-      : [];
+    const siblings = await tx.lead.findMany({
+      where: {
+        id: { not: lead.id },
+        registrationState: RegistrationState.PENDING,
+        vineyard: { equals: normalizeVineyardName(lead.vineyard), mode: "insensitive" },
+      },
+    });
 
     for (const sibling of siblings) {
       await tx.lead.update({
@@ -75,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           leadId: sibling.id,
           actorId: user.id,
           action: "Rejected - conflicting registration",
-          detail: `${lead.company} was approved for a different dealer instead.`,
+          detail: `${lead.vineyard} was approved for a different dealer instead.`,
         },
       });
     }

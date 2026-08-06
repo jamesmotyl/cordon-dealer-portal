@@ -138,7 +138,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
                   onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-medium text-navy">{lead.company || "—"}</p>
+                    <p className="font-medium text-navy">{lead.vineyard}</p>
                     <p className="text-xs text-navy-400">{lead.customerName}</p>
                   </td>
                   {isAdmin && (
