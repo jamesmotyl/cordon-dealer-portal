@@ -34,9 +34,9 @@ async function main() {
   const northfield = await upsertDealer("Northfield Vineyard Services", "UK");
 
   const admin = await upsertUser("admin@cordon.ai", "Cordon Admin", Role.INTERNAL_ADMIN, "admin123", null);
-  const joel = await upsertUser(
-    "joel@vinescapes.com",
-    "Joel",
+  const test = await upsertUser(
+    "test@vinescapes.com",
+    "Test",
     Role.DEALER_ADMIN,
     "dealer123",
     vinescapes.id
@@ -80,7 +80,7 @@ async function main() {
       vineyard: "Best Grapes Vineyard",
       phone: "07712345678",
       email: "joe@example.com",
-      leadGeneratorName: "Joel",
+      leadGeneratorName: "Test",
       dealerId: vinescapes.id,
       registrationState: RegistrationState.CLEARED,
       stage: LeadStage.PRODUCT_RECOMMENDED,
@@ -94,7 +94,7 @@ async function main() {
       expiresAt: daysFromNow(LEAD_EXPIRATION_DAYS),
     },
     [
-      { actorId: joel.id, action: "Lead submitted", detail: "Best Grapes Vineyard submitted for review." },
+      { actorId: test.id, action: "Lead submitted", detail: "Best Grapes Vineyard submitted for review." },
       { actorId: admin.id, action: "Approved", detail: "Cleared for Vinescapes' exclusivity on this vineyard." },
     ]
   );
@@ -127,11 +127,11 @@ async function main() {
     {
       customerName: "Mike Chen",
       vineyard: "Willowbrook Estate",
-      leadGeneratorName: "Joel",
+      leadGeneratorName: "Test",
       dealerId: vinescapes.id,
       registrationState: RegistrationState.PENDING,
     },
-    [{ actorId: joel.id, action: "Lead submitted", detail: "Willowbrook Estate submitted for review." }]
+    [{ actorId: test.id, action: "Lead submitted", detail: "Willowbrook Estate submitted for review." }]
   );
   await createLead(
     {
@@ -146,7 +146,7 @@ async function main() {
 
   console.log("Seed complete.");
   console.log("Admin login: admin@cordon.ai / admin123");
-  console.log("Vinescapes (admin user): joel@vinescapes.com / dealer123");
+  console.log("Vinescapes (test account): test@vinescapes.com / dealer123");
   console.log("Vinescapes (standard user): sam@vinescapes.com / dealer123");
   console.log("Northfield Vineyard Services: alex@northfield.com / dealer123");
 }
