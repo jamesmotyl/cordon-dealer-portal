@@ -40,7 +40,7 @@ function LoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-navy-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <CordonLogo className="text-2xl" />
+          <CordonLogo className="mx-auto h-10 w-auto" />
           <p className="mt-2 text-sm text-navy-400">Dealer Portal</p>
         </div>
 

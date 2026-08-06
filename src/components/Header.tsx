@@ -9,7 +9,7 @@ export default async function Header() {
     <header className="border-b border-navy-100 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <CordonLogo className="text-lg" />
+          <CordonLogo className="h-6 w-auto" />
           <span className="hidden text-navy-300 sm:inline">/</span>
           <span className="hidden text-sm font-medium text-navy-400 sm:inline">
             Portal &middot; {user?.role === "INTERNAL_ADMIN" ? "Admin" : "Dealer"} Portal
