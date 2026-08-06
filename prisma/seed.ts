@@ -33,7 +33,7 @@ async function main() {
   const vinescapes = await upsertDealer("Vinescapes", "UK");
   const northfield = await upsertDealer("Northfield Vineyard Services", "UK");
 
-  const admin = await upsertUser("admin@cordon.ai", "Cordon Admin", Role.INTERNAL_ADMIN, "admin123", null);
+  const admin = await upsertUser("admin-test@cordon.ai", "Test Admin", Role.INTERNAL_ADMIN, "admin123", null);
   const test = await upsertUser(
     "test@vinescapes.com",
     "Test",
@@ -145,7 +145,7 @@ async function main() {
   );
 
   console.log("Seed complete.");
-  console.log("Admin login: admin@cordon.ai / admin123");
+  console.log("Admin login (test): admin-test@cordon.ai / admin123");
   console.log("Vinescapes (test account): test@vinescapes.com / dealer123");
   console.log("Vinescapes (standard user): sam@vinescapes.com / dealer123");
   console.log("Northfield Vineyard Services: alex@northfield.com / dealer123");
