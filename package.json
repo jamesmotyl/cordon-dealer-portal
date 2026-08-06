@@ -11,7 +11,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "test": "tsx tests/leadConflict.test.ts && tsx tests/leadTransitions.test.ts"
+    "test": "tsx tests/leadConflict.test.ts && tsx tests/leadTransitions.test.ts && tsx tests/staleDeal.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

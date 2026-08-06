@@ -83,3 +83,7 @@ export function StageBadge({ stage }: { stage: LeadStage }) {
 export function QuoteBadge({ status }: { status: QuoteStatus }) {
   return <Badge label={QUOTE_LABELS[status]} className={QUOTE_STYLES[status]} />;
 }
+
+export function StaleBadge() {
+  return <Badge label="No movement" className="bg-red-50 text-red-700 border-red-200" />;
+}

@@ -2,9 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { type RegistrationState } from "@prisma/client";
-import { REGISTRATION_LABELS, RegistrationBadge, StageBadge, QuoteBadge } from "@/components/Badges";
+import { REGISTRATION_LABELS, RegistrationBadge, StageBadge, QuoteBadge, StaleBadge } from "@/components/Badges";
 import LeadDetail from "@/components/LeadDetail";
 import AddLeadForm from "@/components/AddLeadForm";
+import { isStaleDeal } from "@/lib/staleDeal";
+import { STALE_DEAL_DAYS } from "@/lib/config";
 import { type LeadWithRelations } from "@/types/lead";
 
 type Role = "DEALER_USER" | "DEALER_ADMIN" | "INTERNAL_ADMIN";
@@ -23,6 +25,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
   const isAdmin = role === "INTERNAL_ADMIN";
   const [dealerFilter, setDealerFilter] = useState("");
   const [registrationFilter, setRegistrationFilter] = useState("");
+  const [staleOnly, setStaleOnly] = useState(false);
 
   const loadLeads = useCallback(async () => {
     const params = new URLSearchParams();
@@ -51,6 +54,10 @@ export default function LeadsBoard({ role }: { role: Role }) {
   }, [isAdmin]);
 
   const pendingCount = leads.filter((l) => l.registrationState === "PENDING").length;
+  const staleCount = leads.filter((l) => isStaleDeal(l.registrationState, l.updatedAt)).length;
+  const visibleLeads = staleOnly
+    ? leads.filter((l) => isStaleDeal(l.registrationState, l.updatedAt))
+    : leads;
 
   return (
     <div className="space-y-6">
@@ -92,14 +99,21 @@ export default function LeadsBoard({ role }: { role: Role }) {
               ))}
             </select>
           </div>
-          {pendingCount > 0 && (
-            <button
-              className="btn-accent ml-auto"
-              onClick={() => setRegistrationFilter("PENDING")}
-            >
-              {pendingCount} pending review
-            </button>
-          )}
+          <div className="ml-auto flex flex-wrap gap-2">
+            {staleCount > 0 && (
+              <button
+                className={staleOnly ? "btn-primary" : "btn-outline"}
+                onClick={() => setStaleOnly((v) => !v)}
+              >
+                {staleCount} no movement in {STALE_DEAL_DAYS}d
+              </button>
+            )}
+            {pendingCount > 0 && (
+              <button className="btn-accent" onClick={() => setRegistrationFilter("PENDING")}>
+                {pendingCount} pending review
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -125,14 +139,14 @@ export default function LeadsBoard({ role }: { role: Role }) {
                 </td>
               </tr>
             )}
-            {!loading && leads.length === 0 && (
+            {!loading && visibleLeads.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-navy-400">
-                  No leads yet.
+                  {staleOnly ? "No stale leads right now." : "No leads yet."}
                 </td>
               </tr>
             )}
-            {leads.map((lead) => (
+            {visibleLeads.map((lead) => (
               <React.Fragment key={lead.id}>
                 <tr
                   className="cursor-pointer border-b border-navy-50 last:border-0 hover:bg-navy-50/60"
@@ -146,7 +160,10 @@ export default function LeadsBoard({ role }: { role: Role }) {
                     <td className="px-4 py-3 text-navy-600">{lead.dealer.name}</td>
                   )}
                   <td className="px-4 py-3">
-                    <RegistrationBadge state={lead.registrationState} />
+                    <div className="flex flex-wrap gap-1">
+                      <RegistrationBadge state={lead.registrationState} />
+                      {isAdmin && isStaleDeal(lead.registrationState, lead.updatedAt) && <StaleBadge />}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <StageBadge stage={lead.stage} />
