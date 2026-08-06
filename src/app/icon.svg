@@ -1,0 +1,6 @@
+<!-- Placeholder favicon using brand colors — swap for a real square Cordon mark when available. -->
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<rect width="32" height="32" rx="6" fill="#2B475C"/>
+<rect x="6" y="23" width="20" height="4" fill="#E66A2C"/>
+<text x="16" y="17" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="white" text-anchor="middle">C</text>
+</svg>
