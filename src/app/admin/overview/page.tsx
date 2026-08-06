@@ -105,6 +105,7 @@ export default async function AdminOverviewPage() {
         </div>
 
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-navy-100 bg-navy-50 text-xs uppercase tracking-wide text-navy-400">
               <tr>
@@ -131,6 +132,7 @@ export default async function AdminOverviewPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </main>
     </div>

@@ -104,6 +104,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
       )}
 
       <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-navy-100 bg-navy-50 text-xs uppercase tracking-wide text-navy-400">
             <tr>
@@ -171,6 +172,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
