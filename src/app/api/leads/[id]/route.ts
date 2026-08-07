@@ -13,10 +13,7 @@ const REGISTRATION_LABELS: Record<RegistrationState, string> = {
 
 // Cordon decides PENDING outcomes; EXPIRED is never a manually-selected
 // target (see expireOverdueLeads).
-function canPerformTransition(
-  role: "DEALER_USER" | "DEALER_ADMIN" | "INTERNAL_ADMIN",
-  to: RegistrationState
-): boolean {
+function canPerformTransition(role: "DEALER" | "INTERNAL_ADMIN", to: RegistrationState): boolean {
   if (to === RegistrationState.EXPIRED) return false;
   return role === "INTERNAL_ADMIN";
 }
@@ -64,17 +61,23 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // Pipeline/quote/checklist tracking: free-choice, no transition rules —
   // dealers manage their own lead, admins manage any lead.
   const editableFields = [
-    "customerName",
-    "vineyard",
+    "legalName",
+    "farm",
     "phone",
     "email",
     "leadGeneratorName",
+    "registrationDate",
     "stage",
     "quoteStatus",
     "quotedAt",
     "quoteValueGbp",
-    "roiStatus",
+    "roiToBeDiscussed",
     "productOptionsStatus",
+    "solidHoppers",
+    "liquidLines",
+    "flowBoost",
+    "buyingProcess",
+    "finalApprover",
   ] as const;
   for (const field of editableFields) {
     if (field in body && body[field] !== (lead as Record<string, unknown>)[field]) {

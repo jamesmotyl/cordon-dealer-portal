@@ -3,5 +3,6 @@ import { authOptions } from "@/lib/auth";
 
 export async function getSessionUser() {
   const session = await getServerSession(authOptions);
-  return session?.user ?? null;
+  if (!session?.user?.id) return null;
+  return session.user;
 }

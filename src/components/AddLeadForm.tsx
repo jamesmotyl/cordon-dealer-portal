@@ -7,8 +7,8 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    customerName: "",
-    vineyard: "",
+    legalName: "",
+    farm: "",
     phone: "",
     email: "",
   });
@@ -32,7 +32,7 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
       return;
     }
 
-    setForm({ customerName: "", vineyard: "", phone: "", email: "" });
+    setForm({ legalName: "", farm: "", phone: "", email: "" });
     setOpen(false);
     onCreated();
   }
@@ -59,28 +59,27 @@ export default function AddLeadForm({ onCreated }: { onCreated: () => void }) {
       </div>
 
       <p className="text-xs text-navy-400">
-        Leads with no conflicts are approved automatically. If the vineyard is already
-        registered by another dealer, or already in Cordon's internal pipeline, it's sent to
-        Cordon for review instead.
+        Every lead is reviewed by Cordon before it becomes active — nothing is approved
+        automatically.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Customer name *</label>
+          <label className="label">Legal name (business) *</label>
           <input
             required
             className="input"
-            value={form.customerName}
-            onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+            value={form.legalName}
+            onChange={(e) => setForm({ ...form, legalName: e.target.value })}
           />
         </div>
         <div>
-          <label className="label">Vineyard *</label>
+          <label className="label">Farm *</label>
           <input
             required
             className="input"
-            value={form.vineyard}
-            onChange={(e) => setForm({ ...form, vineyard: e.target.value })}
+            value={form.farm}
+            onChange={(e) => setForm({ ...form, farm: e.target.value })}
           />
         </div>
         <div>

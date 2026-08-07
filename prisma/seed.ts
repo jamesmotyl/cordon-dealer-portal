@@ -34,27 +34,9 @@ async function main() {
   const northfield = await upsertDealer("Northfield Vineyard Services", "UK");
 
   const admin = await upsertUser("admin-test@cordon.ai", "Test Admin", Role.INTERNAL_ADMIN, "admin123", null);
-  const test = await upsertUser(
-    "test@vinescapes.com",
-    "Test",
-    Role.DEALER_ADMIN,
-    "dealer123",
-    vinescapes.id
-  );
-  const sam = await upsertUser(
-    "sam@vinescapes.com",
-    "Sam",
-    Role.DEALER_USER,
-    "dealer123",
-    vinescapes.id
-  );
-  const alex = await upsertUser(
-    "alex@northfield.com",
-    "Alex",
-    Role.DEALER_ADMIN,
-    "dealer123",
-    northfield.id
-  );
+  const test = await upsertUser("test@vinescapes.com", "Test", Role.DEALER, "dealer123", vinescapes.id);
+  const sam = await upsertUser("sam@vinescapes.com", "Sam", Role.DEALER, "dealer123", vinescapes.id);
+  const alex = await upsertUser("alex@northfield.com", "Alex", Role.DEALER, "dealer123", northfield.id);
 
   // Re-seed leads fresh each run so the demo data always matches the current schema.
   await prisma.activityLog.deleteMany({});
@@ -76,57 +58,62 @@ async function main() {
   // Recreates the one real example row from the Cordon-Vinescapes tracker.
   await createLead(
     {
-      customerName: "Joe Bloggs",
-      vineyard: "Best Grapes Vineyard",
+      legalName: "Joe Bloggs",
+      farm: "Best Grapes Vineyard",
       phone: "07712345678",
       email: "joe@example.com",
       leadGeneratorName: "Test",
       dealerId: vinescapes.id,
+      registrationDate: new Date("2026-08-01"),
       registrationState: RegistrationState.CLEARED,
       stage: LeadStage.PRODUCT_RECOMMENDED,
       quoteStatus: QuoteStatus.QUOTE_SENT,
       quotedAt: new Date("2026-08-01"),
       quoteValueGbp: 10000,
-      roiStatus: TaskStatus.DEALER_DONE,
       productOptionsStatus: TaskStatus.DEALER_DONE,
+      solidHoppers: 2,
+      liquidLines: 3,
+      flowBoost: true,
+      buyingProcess: "Single owner decision",
+      finalApprover: "Joe Bloggs",
       approvedById: admin.id,
       approvedAt: new Date(),
       expiresAt: daysFromNow(LEAD_EXPIRATION_DAYS),
     },
     [
       { actorId: test.id, action: "Lead submitted", detail: "Best Grapes Vineyard submitted for review." },
-      { actorId: admin.id, action: "Approved", detail: "Cleared for Vinescapes' exclusivity on this vineyard." },
+      { actorId: admin.id, action: "Approved", detail: "Cleared for Vinescapes' exclusivity on this farm." },
     ]
   );
 
   // A lead still in Vinescapes' pipeline, no quote yet.
   await createLead(
     {
-      customerName: "Sandra Lee",
-      vineyard: "Hillcrest Farms",
+      legalName: "Sandra Lee",
+      farm: "Hillcrest Farms",
       phone: "07700123456",
       leadGeneratorName: "Sam",
       dealerId: vinescapes.id,
       registrationState: RegistrationState.CLEARED,
       stage: LeadStage.CLIENT_WANTS_QUOTE,
       quoteStatus: QuoteStatus.NEEDS_QUOTE,
-      roiStatus: TaskStatus.DEALER_TODO,
+      roiToBeDiscussed: true,
       approvedById: admin.id,
       approvedAt: new Date(),
       expiresAt: daysFromNow(LEAD_EXPIRATION_DAYS),
     },
     [
       { actorId: sam.id, action: "Lead submitted", detail: "Hillcrest Farms submitted for review." },
-      { actorId: admin.id, action: "Approved", detail: "Cleared for Vinescapes' exclusivity on this vineyard." },
+      { actorId: admin.id, action: "Approved", detail: "Cleared for Vinescapes' exclusivity on this farm." },
     ]
   );
 
-  // A same-vineyard conflict from two different dealers, both still pending —
+  // A same-farm conflict from two different dealers, both still pending —
   // this is what /admin/conflicts is for.
   await createLead(
     {
-      customerName: "Mike Chen",
-      vineyard: "Willowbrook Estate",
+      legalName: "Mike Chen",
+      farm: "Willowbrook Estate",
       leadGeneratorName: "Test",
       dealerId: vinescapes.id,
       registrationState: RegistrationState.PENDING,
@@ -135,8 +122,8 @@ async function main() {
   );
   await createLead(
     {
-      customerName: "M. Chen",
-      vineyard: "Willowbrook Estate",
+      legalName: "M. Chen",
+      farm: "Willowbrook Estate",
       leadGeneratorName: "Alex",
       dealerId: northfield.id,
       registrationState: RegistrationState.PENDING,

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
-import { LEAD_EXPIRATION_DAYS } from "@/lib/config";
-import { hasLeadConflict, normalizeVineyardName } from "@/lib/leadConflict";
+import { hasLeadConflict, normalizeFarmName } from "@/lib/leadConflict";
 import { expireOverdueLeads } from "@/lib/leadTransitions";
 
 export async function GET(req: NextRequest) {
@@ -50,42 +49,37 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { customerName, vineyard, phone, email } = body;
+  const { legalName, farm, phone, email } = body;
 
-  if (!customerName || !vineyard) {
-    return NextResponse.json({ error: "Customer name and vineyard are required" }, { status: 400 });
+  if (!legalName || !farm) {
+    return NextResponse.json({ error: "Legal name and farm are required" }, { status: 400 });
   }
 
-  const normalizedVineyard = normalizeVineyardName(vineyard);
+  const normalizedFarm = normalizeFarmName(farm);
 
-  const [otherVineyardLeads, internalPipelineHit] = await Promise.all([
+  // Still computed for context in the activity log, but no longer decides
+  // the outcome — every lead requires a Cordon admin decision now.
+  const [otherFarmLeads, internalPipelineHit] = await Promise.all([
     prisma.lead.findMany({
-      where: { vineyard: { equals: normalizedVineyard, mode: "insensitive" } },
+      where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
       select: { dealerId: true, registrationState: true },
     }),
     prisma.internalPipelineEntry.findFirst({
-      where: { vineyard: { equals: normalizedVineyard, mode: "insensitive" } },
+      where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
     }),
   ]);
-
-  const conflict = hasLeadConflict(user.dealerId, otherVineyardLeads, !!internalPipelineHit);
-
-  const now = new Date();
-  const expiresAt = conflict
-    ? null
-    : new Date(now.getTime() + LEAD_EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
+  const conflict = hasLeadConflict(user.dealerId, otherFarmLeads, !!internalPipelineHit);
 
   const lead = await prisma.$transaction(async (tx) => {
     const created = await tx.lead.create({
       data: {
-        customerName,
-        vineyard,
+        legalName,
+        farm,
         phone: phone || null,
         email: email || null,
         dealerId: user.dealerId as string,
         leadGeneratorName: user.name,
-        registrationState: conflict ? RegistrationState.PENDING : RegistrationState.CLEARED,
-        expiresAt,
+        registrationState: RegistrationState.PENDING,
       },
     });
 
@@ -93,10 +87,10 @@ export async function POST(req: NextRequest) {
       data: {
         leadId: created.id,
         actorId: user.id,
-        action: conflict ? "Lead submitted - flagged for admin review" : "Lead submitted - auto-approved",
+        action: "Lead submitted",
         detail: conflict
-          ? `${vineyard} conflicts with an existing lead or internal pipeline entry; sent to Cordon for review.`
-          : `${vineyard} had no conflicts; approved automatically, expires ${expiresAt?.toDateString()}.`,
+          ? `${farm} conflicts with an existing lead or internal pipeline entry — flagged for Cordon review.`
+          : `${farm} submitted for Cordon review.`,
       },
     });
 

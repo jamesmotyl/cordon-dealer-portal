@@ -8,7 +8,13 @@ interface Dealer {
   name: string;
 }
 
-export default function CreateUserForm({ dealers }: { dealers: Dealer[] }) {
+export default function CreateUserForm({
+  dealers,
+  onCreated,
+}: {
+  dealers: Dealer[];
+  onCreated?: () => void;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -19,7 +25,6 @@ export default function CreateUserForm({ dealers }: { dealers: Dealer[] }) {
     email: "",
     password: "",
     dealerId: dealers[0]?.id ?? "",
-    role: "DEALER_USER",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,8 +48,9 @@ export default function CreateUserForm({ dealers }: { dealers: Dealer[] }) {
     }
 
     setSuccess(`${form.name} created — share their email and password with them directly.`);
-    setForm({ name: "", email: "", password: "", dealerId: dealers[0]?.id ?? "", role: "DEALER_USER" });
+    setForm({ name: "", email: "", password: "", dealerId: dealers[0]?.id ?? "" });
     router.refresh();
+    onCreated?.();
   }
 
   if (!open) {
@@ -111,17 +117,6 @@ export default function CreateUserForm({ dealers }: { dealers: Dealer[] }) {
                 {d.name}
               </option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className="label">Role</label>
-          <select
-            className="input"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-          >
-            <option value="DEALER_USER">Dealer user</option>
-            <option value="DEALER_ADMIN">Dealer admin</option>
           </select>
         </div>
       </div>

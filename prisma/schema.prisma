@@ -9,18 +9,18 @@ datasource db {
 }
 
 enum Role {
-  DEALER_USER
-  DEALER_ADMIN
+  DEALER
   INTERNAL_ADMIN
 }
 
 // Cordon's internal exclusivity check: is another dealer already working this
-// vineyard? Not shown to dealers — this is separate from the client-facing
-// pipeline stage below.
+// farm? Not shown to dealers — this is separate from the client-facing
+// pipeline stage below. Every lead starts PENDING; nothing auto-clears, a
+// Cordon admin always makes the call.
 enum RegistrationState {
-  PENDING // just submitted, conflict check not yet resolved
-  CLEARED // no conflicting registration (or admin approved over one) — dealer holds exclusivity
-  REJECTED // lost to another dealer's claim on the same vineyard
+  PENDING // awaiting a Cordon admin decision
+  CLEARED // admin approved — dealer holds exclusivity
+  REJECTED // lost to another dealer's claim on the same farm
   EXPIRED // exclusivity window lapsed with no resolution
 }
 
@@ -43,10 +43,9 @@ enum QuoteStatus {
   INVOICED
 }
 
-// Shared by roiStatus and productOptionsStatus below — same "who owes this,
-// is it done" checklist the spreadsheet uses for both columns. DEALER_* is
-// shown as the actual dealer's name in the UI (the sheet hardcodes
-// "Vinescapes", but the model stays dealer-agnostic).
+// Used by productOptionsStatus below — same "who owes this, is it done"
+// checklist the spreadsheet uses. DEALER_* is shown as the actual dealer's
+// name in the UI (the sheet hardcodes "Vinescapes", model stays dealer-agnostic).
 enum TaskStatus {
   DEALER_TODO
   DEALER_DONE
@@ -72,12 +71,16 @@ model User {
   email        String   @unique
   passwordHash String
   name         String
-  role         Role     @default(DEALER_USER)
+  role         Role     @default(DEALER)
   createdAt    DateTime @default(now())
 
-  // null for internal Cordon staff (INTERNAL_ADMIN); set for dealer_user / dealer_admin
+  // null for internal Cordon staff (INTERNAL_ADMIN); set for dealer accounts
   dealerId String?
   dealer   Dealer? @relation(fields: [dealerId], references: [id])
+
+  // Set by an admin to force this user's existing sessions to be treated as
+  // invalid — checked on every request via the JWT callback.
+  sessionInvalidatedAt DateTime?
 
   approvedLeads Lead[]        @relation("ApprovedBy")
   activityLogs  ActivityLog[]
@@ -87,16 +90,22 @@ model User {
 }
 
 model Lead {
-  id           String @id @default(cuid())
-  customerName String
-  vineyard     String
-  phone        String?
-  email        String?
+  id        String @id @default(cuid())
+  legalName String // legal name of the customer's business
+  farm      String
+  phone     String?
+  email     String?
+
+  // When this lead was registered — separate from createdAt (the DB row's
+  // creation time), since a dealer may be recording a registration that
+  // predates when it was entered into the system.
+  registrationDate DateTime @default(now())
 
   // Who at the dealer surfaced this lead. Simple text, auto-filled from the
   // submitting user's name at creation — not a separate role or permission.
   leadGeneratorName String?
 
+  // Every lead requires a Cordon admin decision — nothing auto-clears.
   registrationState RegistrationState @default(PENDING)
   stage             LeadStage         @default(CLIENT_EXPRESSED_INTEREST)
 
@@ -104,8 +113,21 @@ model Lead {
   quotedAt      DateTime?
   quoteValueGbp Float?
 
-  roiStatus            TaskStatus?
+  // Simple flag rather than a to-do/done tracker — either it needs discussing
+  // with the client or it doesn't.
+  roiToBeDiscussed Boolean?
+
+  // Whether the loop sprayer product specification has been agreed with the
+  // client, plus the actual agreed spec once it has.
   productOptionsStatus TaskStatus?
+  solidHoppers         Int? // 0-2
+  liquidLines          Int? // 1-4
+  flowBoost            Boolean?
+
+  // Sales-process context, free text since the shape of these varies a lot
+  // by customer.
+  buyingProcess String? // e.g. "committee vote", "single owner decision"
+  finalApprover String? // who has the final say on the purchase
 
   // Stubbed for phase 2 (commission tracking) — not surfaced in the UI yet.
   commission Float?
@@ -117,7 +139,7 @@ model Lead {
   approvedBy   User?     @relation("ApprovedBy", fields: [approvedById], references: [id])
   approvedAt   DateTime?
 
-  // Set on a REJECTED lead when it lost a same-vineyard conflict to another
+  // Set on a REJECTED lead when it lost a same-farm conflict to another
   // dealer's registration, pointing at the lead that was approved instead.
   resolvedByLeadId String?
   resolvedByLead    Lead?  @relation("ConflictResolution", fields: [resolvedByLeadId], references: [id])
@@ -173,14 +195,15 @@ model Note {
   @@index([dealerId])
 }
 
-// Placeholder for Cordon's internal sales pipeline until that system is integrated.
-// A matching row here means Cordon is already working this company directly.
+// Placeholder for Cordon's internal sales pipeline (HubSpot long-term) until
+// that's connected. A matching row here means Cordon is already working this
+// farm directly. Currently populated manually — no HubSpot sync yet.
 model InternalPipelineEntry {
   id        String   @id @default(cuid())
-  vineyard  String
+  farm      String
   createdAt DateTime @default(now())
 
-  @@index([vineyard])
+  @@index([farm])
 }
 
 model ActivityLog {

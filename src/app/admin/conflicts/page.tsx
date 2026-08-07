@@ -19,7 +19,7 @@ export default async function AdminConflictsPage() {
           <div>
             <h1 className="text-xl font-semibold text-navy">Pending review</h1>
             <p className="text-sm text-navy-400">
-              Leads awaiting a decision. Registrations for the same vineyard are grouped
+              Leads awaiting a decision. Registrations for the same farm are grouped
               together — approving one automatically rejects the others.
             </p>
           </div>

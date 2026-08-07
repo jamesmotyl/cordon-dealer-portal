@@ -9,7 +9,7 @@ import { isStaleDeal } from "@/lib/staleDeal";
 import { STALE_DEAL_DAYS } from "@/lib/config";
 import { type LeadWithRelations } from "@/types/lead";
 
-type Role = "DEALER_USER" | "DEALER_ADMIN" | "INTERNAL_ADMIN";
+type Role = "DEALER" | "INTERNAL_ADMIN";
 
 interface Dealer {
   id: string;
@@ -122,7 +122,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-navy-100 bg-navy-50 text-xs uppercase tracking-wide text-navy-400">
             <tr>
-              <th className="px-4 py-3">Vineyard</th>
+              <th className="px-4 py-3">Farm</th>
               {isAdmin && <th className="px-4 py-3">Dealer</th>}
               <th className="px-4 py-3">Registration</th>
               <th className="px-4 py-3">Stage</th>
@@ -153,8 +153,8 @@ export default function LeadsBoard({ role }: { role: Role }) {
                   onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-medium text-navy">{lead.vineyard}</p>
-                    <p className="text-xs text-navy-400">{lead.customerName}</p>
+                    <p className="font-medium text-navy">{lead.farm}</p>
+                    <p className="text-xs text-navy-400">{lead.legalName}</p>
                   </td>
                   {isAdmin && (
                     <td className="px-4 py-3 text-navy-600">{lead.dealer.name}</td>

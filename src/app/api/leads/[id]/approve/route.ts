@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { isValidTransition } from "@/lib/leadTransitions";
-import { normalizeVineyardName } from "@/lib/normalizeVineyardName";
+import { normalizeFarmName } from "@/lib/normalizeFarmName";
 import { LEAD_EXPIRATION_DAYS } from "@/lib/config";
 
 // Clears one PENDING lead's exclusivity check and, if other dealers submitted
-// the same vineyard while it was pending, rejects those siblings in the same
+// the same farm while it was pending, rejects those siblings in the same
 // transaction, recording who decided, when, and which lead won on every
 // affected record.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         leadId: approved.id,
         actorId: user.id,
         action: "Approved",
-        detail: "Cleared for this dealer's exclusivity on this vineyard.",
+        detail: "Cleared for this dealer's exclusivity on this farm.",
       },
     });
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       where: {
         id: { not: lead.id },
         registrationState: RegistrationState.PENDING,
-        vineyard: { equals: normalizeVineyardName(lead.vineyard), mode: "insensitive" },
+        farm: { equals: normalizeFarmName(lead.farm), mode: "insensitive" },
       },
     });
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           leadId: sibling.id,
           actorId: user.id,
           action: "Rejected - conflicting registration",
-          detail: `${lead.vineyard} was approved for a different dealer instead.`,
+          detail: `${lead.farm} was approved for a different dealer instead.`,
         },
       });
     }

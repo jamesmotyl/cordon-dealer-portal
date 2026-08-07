@@ -30,7 +30,7 @@ export function isPastExpiry(
 }
 
 // "Check on every load" expiry sweep: flips any overdue cleared lead to
-// EXPIRED, freeing the vineyard up for other dealers. Cheap enough to run
+// EXPIRED, freeing the farm up for other dealers. Cheap enough to run
 // inline on GET rather than needing a real scheduler (e.g. Vercel Cron).
 export async function expireOverdueLeads(
   tx: PrismaClient | Prisma.TransactionClient

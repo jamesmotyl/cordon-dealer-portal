@@ -22,17 +22,27 @@ export default function LeadDetail({
   onUpdated,
 }: {
   lead: LeadWithRelations;
-  role: "DEALER_USER" | "DEALER_ADMIN" | "INTERNAL_ADMIN";
+  role: "DEALER" | "INTERNAL_ADMIN";
   onUpdated: () => void;
 }) {
+  const [registrationDate, setRegistrationDate] = useState(lead.registrationDate.slice(0, 10));
   const [stage, setStage] = useState<LeadStage>(lead.stage);
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(lead.quoteStatus);
   const [quotedAt, setQuotedAt] = useState(lead.quotedAt ? lead.quotedAt.slice(0, 10) : "");
   const [quoteValueGbp, setQuoteValueGbp] = useState(lead.quoteValueGbp?.toString() ?? "");
-  const [roiStatus, setRoiStatus] = useState<TaskStatus | "">(lead.roiStatus ?? "");
+  const [roiToBeDiscussed, setRoiToBeDiscussed] = useState(
+    lead.roiToBeDiscussed === null ? "" : lead.roiToBeDiscussed ? "yes" : "no"
+  );
   const [productOptionsStatus, setProductOptionsStatus] = useState<TaskStatus | "">(
     lead.productOptionsStatus ?? ""
   );
+  const [solidHoppers, setSolidHoppers] = useState(lead.solidHoppers?.toString() ?? "");
+  const [liquidLines, setLiquidLines] = useState(lead.liquidLines?.toString() ?? "");
+  const [flowBoost, setFlowBoost] = useState(
+    lead.flowBoost === null ? "" : lead.flowBoost ? "yes" : "no"
+  );
+  const [buyingProcess, setBuyingProcess] = useState(lead.buyingProcess ?? "");
+  const [finalApprover, setFinalApprover] = useState(lead.finalApprover ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,12 +68,18 @@ export default function LeadDetail({
 
   async function handleSavePipeline() {
     await patchLead({
+      registrationDate: new Date(registrationDate).toISOString(),
       stage,
       quoteStatus,
       quotedAt: quotedAt ? new Date(quotedAt).toISOString() : null,
       quoteValueGbp: quoteValueGbp ? Number(quoteValueGbp) : null,
-      roiStatus: roiStatus || null,
+      roiToBeDiscussed: roiToBeDiscussed === "" ? null : roiToBeDiscussed === "yes",
       productOptionsStatus: productOptionsStatus || null,
+      solidHoppers: solidHoppers ? Number(solidHoppers) : null,
+      liquidLines: liquidLines ? Number(liquidLines) : null,
+      flowBoost: flowBoost === "" ? null : flowBoost === "yes",
+      buyingProcess: buyingProcess || null,
+      finalApprover: finalApprover || null,
     });
   }
 
@@ -89,7 +105,7 @@ export default function LeadDetail({
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label className="label">Contact</label>
-          <p className="text-sm text-navy">{lead.customerName}</p>
+          <p className="text-sm text-navy">{lead.legalName}</p>
           <p className="text-sm text-navy-400">{lead.phone || "No phone on file"}</p>
           <p className="text-sm text-navy-400">{lead.email || "No email on file"}</p>
         </div>
@@ -115,7 +131,7 @@ export default function LeadDetail({
       {isAdmin && lead.registrationState === "PENDING" && (
         <div className="space-y-3 rounded-sm border border-orange-200 bg-orange-50 p-4">
           <p className="text-sm font-semibold text-navy">
-            Approval decision needed — check for other dealers on the same vineyard.
+            Approval decision needed — check for other dealers on the same farm.
           </p>
           <div className="flex flex-wrap gap-2">
             <button className="btn-accent" disabled={saving} onClick={handleApprove}>
@@ -129,6 +145,15 @@ export default function LeadDetail({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="label">Registration date</label>
+          <input
+            type="date"
+            className="input"
+            value={registrationDate}
+            onChange={(e) => setRegistrationDate(e.target.value)}
+          />
+        </div>
         <div>
           <label className="label">Client stage</label>
           <select
@@ -178,36 +203,90 @@ export default function LeadDetail({
           />
         </div>
         <div>
-          <label className="label">ROI calculated with/for client?</label>
+          <label className="label">ROI to be discussed?</label>
           <select
             className="input"
-            value={roiStatus}
-            onChange={(e) => setRoiStatus(e.target.value as TaskStatus)}
+            value={roiToBeDiscussed}
+            onChange={(e) => setRoiToBeDiscussed(e.target.value)}
           >
             <option value="">Not set</option>
-            {TASK_OPTIONS.map((t) => (
-              <option key={t} value={t}>
-                {taskStatusLabel(t, lead.dealer.name)}
-              </option>
-            ))}
+            <option value="yes">To be discussed</option>
+            <option value="no">Not needed</option>
           </select>
         </div>
         <div>
-          <label className="label">Product options completed with client?</label>
-          <select
+          <label className="label">Buying process identified</label>
+          <input
             className="input"
-            value={productOptionsStatus}
-            onChange={(e) => setProductOptionsStatus(e.target.value as TaskStatus)}
-          >
-            <option value="">Not set</option>
-            {TASK_OPTIONS.map((t) => (
-              <option key={t} value={t}>
-                {taskStatusLabel(t, lead.dealer.name)}
-              </option>
-            ))}
-          </select>
+            placeholder="e.g. committee vote, single owner decision"
+            value={buyingProcess}
+            onChange={(e) => setBuyingProcess(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label">Final approval by</label>
+          <input
+            className="input"
+            placeholder="Who has the final say"
+            value={finalApprover}
+            onChange={(e) => setFinalApprover(e.target.value)}
+          />
         </div>
       </div>
+
+      <div className="rounded-sm border border-navy-100 bg-white p-4">
+        <p className="mb-3 text-sm font-semibold text-navy">
+          Product specification agreed with {lead.dealer.name}
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label className="label">Agreement status</label>
+            <select
+              className="input"
+              value={productOptionsStatus}
+              onChange={(e) => setProductOptionsStatus(e.target.value as TaskStatus)}
+            >
+              <option value="">Not set</option>
+              {TASK_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {taskStatusLabel(t, lead.dealer.name)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Solid hoppers (0-2)</label>
+            <input
+              type="number"
+              min="0"
+              max="2"
+              className="input"
+              value={solidHoppers}
+              onChange={(e) => setSolidHoppers(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Liquid lines (1-4)</label>
+            <input
+              type="number"
+              min="1"
+              max="4"
+              className="input"
+              value={liquidLines}
+              onChange={(e) => setLiquidLines(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Flow boost</label>
+            <select className="input" value={flowBoost} onChange={(e) => setFlowBoost(e.target.value)}>
+              <option value="">Not set</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-end">
         <button className="btn-primary" disabled={saving} onClick={handleSavePipeline}>
           Save changes

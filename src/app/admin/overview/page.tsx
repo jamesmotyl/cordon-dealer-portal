@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
 import { isStaleDeal } from "@/lib/staleDeal";
 import { STALE_DEAL_DAYS } from "@/lib/config";
-import CreateUserForm from "@/components/CreateUserForm";
+import UserManagement from "@/components/UserManagement";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
     prisma.lead.findMany({
       select: {
         id: true,
-        vineyard: true,
+        farm: true,
         dealerId: true,
         registrationState: true,
         quoteStatus: true,
@@ -93,9 +93,7 @@ export default async function AdminOverviewPage() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <CreateUserForm dealers={dealers.map((d) => ({ id: d.id, name: d.name }))} />
-        </div>
+        <UserManagement dealers={dealers.map((d) => ({ id: d.id, name: d.name }))} />
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="card p-4">
@@ -133,7 +131,7 @@ export default async function AdminOverviewPage() {
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-navy-100 bg-navy-50 text-xs uppercase tracking-wide text-navy-400">
                   <tr>
-                    <th className="px-4 py-3">Vineyard</th>
+                    <th className="px-4 py-3">Farm</th>
                     <th className="px-4 py-3">Dealer</th>
                     <th className="px-4 py-3">Last updated</th>
                   </tr>
@@ -141,7 +139,7 @@ export default async function AdminOverviewPage() {
                 <tbody>
                   {staleLeads.map((lead) => (
                     <tr key={lead.id} className="border-b border-navy-50 last:border-0">
-                      <td className="px-4 py-3 font-medium text-navy">{lead.vineyard}</td>
+                      <td className="px-4 py-3 font-medium text-navy">{lead.farm}</td>
                       <td className="px-4 py-3 text-navy-600">{dealerName(lead.dealerId)}</td>
                       <td className="px-4 py-3 text-navy-400">
                         {lead.updatedAt.toLocaleDateString()}

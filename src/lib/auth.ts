@@ -44,12 +44,28 @@ export const authOptions: AuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.dealerId = user.dealerId;
+        return token;
+      }
+
+      // On every subsequent request, check whether an admin has force-logged
+      // this user out since this token was issued.
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { sessionInvalidatedAt: true },
+        });
+        const invalidatedAt = dbUser?.sessionInvalidatedAt;
+        if (!dbUser || (invalidatedAt && invalidatedAt.getTime() / 1000 > (token.iat as number))) {
+          token.id = "";
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        // Empty id means force-logged-out or deleted — getSessionUser() and
+        // middleware both treat this as unauthenticated.
+        session.user.id = (token.id as string) ?? "";
         session.user.role = token.role;
         session.user.dealerId = token.dealerId;
       }

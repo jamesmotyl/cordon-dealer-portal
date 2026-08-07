@@ -19,7 +19,7 @@ function test(name: string, fn: () => void) {
   }
 }
 
-test("same vineyard submitted twice by different dealers is a conflict", () => {
+test("same farm submitted twice by different dealers is a conflict", () => {
   const conflict = hasLeadConflict(
     "dealer-b",
     [{ dealerId: "dealer-a", registrationState: RegistrationState.CLEARED }],
@@ -28,17 +28,17 @@ test("same vineyard submitted twice by different dealers is a conflict", () => {
   assert.strictEqual(conflict, true);
 });
 
-test("totally new vineyard with no existing leads or pipeline hit has no conflict", () => {
+test("totally new farm with no existing leads or pipeline hit has no conflict", () => {
   const conflict = hasLeadConflict("dealer-a", [], false);
   assert.strictEqual(conflict, false);
 });
 
-test("vineyard already in Cordon's internal pipeline is a conflict even with no other dealer leads", () => {
+test("farm already in Cordon's internal pipeline is a conflict even with no other dealer leads", () => {
   const conflict = hasLeadConflict("dealer-a", [], true);
   assert.strictEqual(conflict, true);
 });
 
-test("same dealer resubmitting their own vineyard is not a conflict with themselves", () => {
+test("same dealer resubmitting their own farm is not a conflict with themselves", () => {
   const conflict = hasLeadConflict(
     "dealer-a",
     [{ dealerId: "dealer-a", registrationState: RegistrationState.CLEARED }],
