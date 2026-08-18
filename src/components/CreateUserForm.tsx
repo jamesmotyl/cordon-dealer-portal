@@ -8,6 +8,8 @@ interface Dealer {
   name: string;
 }
 
+const NEW_DEALER = "__new_dealer__";
+
 export default function CreateUserForm({
   dealers,
   onCreated,
@@ -24,8 +26,10 @@ export default function CreateUserForm({
     name: "",
     email: "",
     password: "",
-    dealerId: dealers[0]?.id ?? "",
+    dealerId: dealers[0]?.id ?? NEW_DEALER,
   });
+  const [newDealerName, setNewDealerName] = useState("");
+  const [newDealerRegion, setNewDealerRegion] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,10 +37,28 @@ export default function CreateUserForm({
     setError(null);
     setSuccess(null);
 
+    let dealerId = form.dealerId;
+
+    if (dealerId === NEW_DEALER) {
+      const dealerRes = await fetch("/api/dealers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newDealerName, region: newDealerRegion || undefined }),
+      });
+      if (!dealerRes.ok) {
+        const data = await dealerRes.json().catch(() => ({}));
+        setSubmitting(false);
+        setError(data.error || "Something went wrong creating this dealer.");
+        return;
+      }
+      const dealerData = await dealerRes.json();
+      dealerId = dealerData.dealer.id;
+    }
+
     const res = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, dealerId }),
     });
 
     setSubmitting(false);
@@ -48,7 +70,9 @@ export default function CreateUserForm({
     }
 
     setSuccess(`${form.name} created — share their email and password with them directly.`);
-    setForm({ name: "", email: "", password: "", dealerId: dealers[0]?.id ?? "" });
+    setForm({ name: "", email: "", password: "", dealerId: dealers[0]?.id ?? NEW_DEALER });
+    setNewDealerName("");
+    setNewDealerRegion("");
     router.refresh();
     onCreated?.();
   }
@@ -117,8 +141,30 @@ export default function CreateUserForm({
                 {d.name}
               </option>
             ))}
+            <option value={NEW_DEALER}>+ New dealer…</option>
           </select>
         </div>
+        {form.dealerId === NEW_DEALER && (
+          <>
+            <div>
+              <label className="label">New dealer name *</label>
+              <input
+                required
+                className="input"
+                value={newDealerName}
+                onChange={(e) => setNewDealerName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Region</label>
+              <input
+                className="input"
+                value={newDealerRegion}
+                onChange={(e) => setNewDealerRegion(e.target.value)}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
