@@ -31,6 +31,7 @@ export default async function AdminOverviewPage() {
         farm: true,
         dealerId: true,
         registrationState: true,
+        stage: true,
         quoteStatus: true,
         quoteValueGbp: true,
         updatedAt: true,
@@ -53,6 +54,10 @@ export default async function AdminOverviewPage() {
 
   const staleLeads = leads
     .filter((l) => isStaleDeal(l.registrationState, l.updatedAt))
+    .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
+
+  const readyForQuoteLeads = leads
+    .filter((l) => l.stage === "READY_FOR_QUOTE")
     .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
 
   const perDealer = dealers.map((dealer) => {
@@ -95,7 +100,7 @@ export default async function AdminOverviewPage() {
 
         <UserManagement dealers={dealers.map((d) => ({ id: d.id, name: d.name }))} />
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <div className="card p-4">
             <p className="text-xs uppercase tracking-wide text-navy-400">Total leads</p>
             <p className="mt-1 text-2xl font-semibold text-navy">{totalLeads}</p>
@@ -103,6 +108,10 @@ export default async function AdminOverviewPage() {
           <div className="card p-4">
             <p className="text-xs uppercase tracking-wide text-navy-400">Pending review</p>
             <p className="mt-1 text-2xl font-semibold text-navy">{totalPending}</p>
+          </div>
+          <div className="card border-orange-300 bg-orange-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-orange-700">Ready for quote</p>
+            <p className="mt-1 text-2xl font-semibold text-navy">{readyForQuoteLeads.length}</p>
           </div>
           <div className="card p-4">
             <p className="text-xs uppercase tracking-wide text-navy-400">No movement {STALE_DEAL_DAYS}d+</p>
@@ -119,6 +128,36 @@ export default async function AdminOverviewPage() {
             <p className="text-xs text-navy-400">Accepted quotes + invoiced</p>
           </div>
         </div>
+
+        {readyForQuoteLeads.length > 0 && (
+          <div className="mb-8 card overflow-hidden border-orange-300">
+            <div className="border-b border-orange-200 bg-orange-100 px-4 py-2">
+              <p className="text-sm font-semibold text-navy">Ready for quote</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-navy-100 bg-navy-50 text-xs uppercase tracking-wide text-navy-400">
+                  <tr>
+                    <th className="px-4 py-3">Farm</th>
+                    <th className="px-4 py-3">Dealer</th>
+                    <th className="px-4 py-3">Last updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {readyForQuoteLeads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-navy-50 last:border-0">
+                      <td className="px-4 py-3 font-medium text-navy">{lead.farm}</td>
+                      <td className="px-4 py-3 text-navy-600">{dealerName(lead.dealerId)}</td>
+                      <td className="px-4 py-3 text-navy-400">
+                        {lead.updatedAt.toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {staleLeads.length > 0 && (
           <div className="mb-8 card overflow-hidden border-orange-200">

@@ -14,13 +14,17 @@ export const REGISTRATION_LABELS: Record<RegistrationState, string> = {
 
 export const STAGE_LABELS: Record<LeadStage, string> = {
   CLIENT_EXPRESSED_INTEREST: "Client expressed interest",
-  PRODUCT_RECOMMENDED: "Product recommended to client",
-  CLIENT_WANTS_QUOTE: "Client wants a quote",
-  CLIENT_WANTS_TO_TALK_TO_CORDON: "Client wants to talk to Cordon directly",
-  CLIENT_WANTS_ADVICE_FROM_DEALER: "Client wants advice from dealer",
+  CLIENT_QUALIFIED: "Client qualified",
+  LOOP_ROI_DISCUSSED: "Loop ROI discussed",
+  READY_FOR_QUOTE: "Ready for quote",
+  CLIENT_WANTS_DEMO: "Client wants demo",
+  CLIENT_WANTS_TO_DISCUSS_WITH_CORDON: "Client wants to discuss with Cordon directly",
+  CLOSED_NOT_YET: "Closed - Not yet",
+  CLOSED_LOST: "Closed - Lost",
 };
 
 export const QUOTE_LABELS: Record<QuoteStatus, string> = {
+  PRE_QUOTE: "Pre-quote (too early to say)",
   NEEDS_QUOTE: "Needs a quote",
   QUOTE_SENT: "Quote sent",
   QUOTE_ACCEPTED: "Quote accepted",
@@ -48,13 +52,17 @@ const REGISTRATION_STYLES: Record<RegistrationState, string> = {
 
 const STAGE_STYLES: Record<LeadStage, string> = {
   CLIENT_EXPRESSED_INTEREST: "bg-navy-50 text-navy-600 border-navy-100",
-  PRODUCT_RECOMMENDED: "bg-orange-50 text-orange-700 border-orange-200",
-  CLIENT_WANTS_QUOTE: "bg-orange-100 text-orange-700 border-orange-200",
-  CLIENT_WANTS_TO_TALK_TO_CORDON: "bg-navy-100 text-navy-600 border-navy-200",
-  CLIENT_WANTS_ADVICE_FROM_DEALER: "bg-navy-100 text-navy-600 border-navy-200",
+  CLIENT_QUALIFIED: "bg-navy-100 text-navy-600 border-navy-200",
+  LOOP_ROI_DISCUSSED: "bg-orange-50 text-orange-700 border-orange-200",
+  READY_FOR_QUOTE: "bg-orange-200 text-orange-900 border-orange-300 font-semibold",
+  CLIENT_WANTS_DEMO: "bg-orange-50 text-orange-700 border-orange-200",
+  CLIENT_WANTS_TO_DISCUSS_WITH_CORDON: "bg-navy-100 text-navy-600 border-navy-200",
+  CLOSED_NOT_YET: "bg-navy-50 text-navy-400 border-navy-100",
+  CLOSED_LOST: "bg-red-50 text-red-700 border-red-200",
 };
 
 const QUOTE_STYLES: Record<QuoteStatus, string> = {
+  PRE_QUOTE: "bg-navy-50 text-navy-400 border-navy-100",
   NEEDS_QUOTE: "bg-navy-50 text-navy-400 border-navy-100",
   QUOTE_SENT: "bg-orange-50 text-orange-700 border-orange-200",
   QUOTE_ACCEPTED: "bg-green-50 text-green-700 border-green-200",

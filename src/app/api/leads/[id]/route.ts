@@ -78,6 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     "flowBoost",
     "buyingProcess",
     "finalApprover",
+    "closedLostReason",
   ] as const;
   for (const field of editableFields) {
     if (field in body && body[field] !== (lead as Record<string, unknown>)[field]) {

@@ -43,6 +43,7 @@ export default function LeadDetail({
   );
   const [buyingProcess, setBuyingProcess] = useState(lead.buyingProcess ?? "");
   const [finalApprover, setFinalApprover] = useState(lead.finalApprover ?? "");
+  const [closedLostReason, setClosedLostReason] = useState(lead.closedLostReason ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +81,7 @@ export default function LeadDetail({
       flowBoost: flowBoost === "" ? null : flowBoost === "yes",
       buyingProcess: buyingProcess || null,
       finalApprover: finalApprover || null,
+      closedLostReason: closedLostReason || null,
     });
   }
 
@@ -168,6 +170,17 @@ export default function LeadDetail({
             ))}
           </select>
         </div>
+        {stage === "CLOSED_LOST" && (
+          <div className="sm:col-span-2">
+            <label className="label">Reason lost</label>
+            <input
+              className="input"
+              placeholder="Why this one didn't close"
+              value={closedLostReason}
+              onChange={(e) => setClosedLostReason(e.target.value)}
+            />
+          </div>
+        )}
         <div>
           <label className="label">Quote status</label>
           <select

@@ -24,18 +24,22 @@ enum RegistrationState {
   EXPIRED // exclusivity window lapsed with no resolution
 }
 
-// The client-engagement stage, matching Cordon/Vinescapes' existing tracker
-// vocabulary exactly. A flat dropdown, not an enforced pipeline — any stage
-// can be selected at any time, same as the spreadsheet it replaces.
+// The client-engagement pipeline. A flat dropdown, not an enforced state
+// machine — any stage can be selected at any time (same as the spreadsheet
+// this replaced), but the values now read as an actual sales pipeline.
 enum LeadStage {
   CLIENT_EXPRESSED_INTEREST
-  PRODUCT_RECOMMENDED
-  CLIENT_WANTS_QUOTE
-  CLIENT_WANTS_TO_TALK_TO_CORDON
-  CLIENT_WANTS_ADVICE_FROM_DEALER
+  CLIENT_QUALIFIED
+  LOOP_ROI_DISCUSSED
+  READY_FOR_QUOTE // surfaced as an admin alert — see /admin/overview
+  CLIENT_WANTS_DEMO
+  CLIENT_WANTS_TO_DISCUSS_WITH_CORDON
+  CLOSED_NOT_YET
+  CLOSED_LOST
 }
 
 enum QuoteStatus {
+  PRE_QUOTE // too early to say — not every first conversation gets to a quote
   NEEDS_QUOTE
   QUOTE_SENT
   QUOTE_ACCEPTED
@@ -108,8 +112,9 @@ model Lead {
   // Every lead requires a Cordon admin decision — nothing auto-clears.
   registrationState RegistrationState @default(PENDING)
   stage             LeadStage         @default(CLIENT_EXPRESSED_INTEREST)
+  closedLostReason  String? // shown/relevant when stage = CLOSED_LOST
 
-  quoteStatus   QuoteStatus @default(NEEDS_QUOTE)
+  quoteStatus   QuoteStatus @default(PRE_QUOTE)
   quotedAt      DateTime?
   quoteValueGbp Float?
 

@@ -24,6 +24,7 @@ export interface LeadWithRelations {
 
   registrationState: RegistrationState;
   stage: LeadStage;
+  closedLostReason: string | null;
 
   quoteStatus: QuoteStatus;
   quotedAt: string | null;

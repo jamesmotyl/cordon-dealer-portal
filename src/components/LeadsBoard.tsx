@@ -26,6 +26,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
   const [dealerFilter, setDealerFilter] = useState("");
   const [registrationFilter, setRegistrationFilter] = useState("");
   const [staleOnly, setStaleOnly] = useState(false);
+  const [readyForQuoteOnly, setReadyForQuoteOnly] = useState(false);
 
   const loadLeads = useCallback(async () => {
     const params = new URLSearchParams();
@@ -55,9 +56,10 @@ export default function LeadsBoard({ role }: { role: Role }) {
 
   const pendingCount = leads.filter((l) => l.registrationState === "PENDING").length;
   const staleCount = leads.filter((l) => isStaleDeal(l.registrationState, l.updatedAt)).length;
-  const visibleLeads = staleOnly
-    ? leads.filter((l) => isStaleDeal(l.registrationState, l.updatedAt))
-    : leads;
+  const readyForQuoteCount = leads.filter((l) => l.stage === "READY_FOR_QUOTE").length;
+  const visibleLeads = leads
+    .filter((l) => !staleOnly || isStaleDeal(l.registrationState, l.updatedAt))
+    .filter((l) => !readyForQuoteOnly || l.stage === "READY_FOR_QUOTE");
 
   return (
     <div className="space-y-6">
@@ -100,6 +102,14 @@ export default function LeadsBoard({ role }: { role: Role }) {
             </select>
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
+            {readyForQuoteCount > 0 && (
+              <button
+                className={readyForQuoteOnly ? "btn-primary" : "btn-outline"}
+                onClick={() => setReadyForQuoteOnly((v) => !v)}
+              >
+                {readyForQuoteCount} ready for quote
+              </button>
+            )}
             {staleCount > 0 && (
               <button
                 className={staleOnly ? "btn-primary" : "btn-outline"}
@@ -142,7 +152,7 @@ export default function LeadsBoard({ role }: { role: Role }) {
             {!loading && visibleLeads.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-navy-400">
-                  {staleOnly ? "No stale leads right now." : "No leads yet."}
+                  {staleOnly || readyForQuoteOnly ? "No leads match this filter." : "No leads yet."}
                 </td>
               </tr>
             )}
