@@ -34,6 +34,7 @@ enum LeadStage {
   READY_FOR_QUOTE // surfaced as an admin alert — see /admin/overview
   CLIENT_WANTS_DEMO
   CLIENT_WANTS_TO_DISCUSS_WITH_CORDON
+  CLOSED_WON
   CLOSED_NOT_YET
   CLOSED_LOST
 }

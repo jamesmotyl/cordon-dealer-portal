@@ -19,6 +19,7 @@ export const STAGE_LABELS: Record<LeadStage, string> = {
   READY_FOR_QUOTE: "Ready for quote",
   CLIENT_WANTS_DEMO: "Client wants demo",
   CLIENT_WANTS_TO_DISCUSS_WITH_CORDON: "Client wants to discuss with Cordon directly",
+  CLOSED_WON: "Closed - Won",
   CLOSED_NOT_YET: "Closed - Not yet",
   CLOSED_LOST: "Closed - Lost",
 };
@@ -57,6 +58,7 @@ const STAGE_STYLES: Record<LeadStage, string> = {
   READY_FOR_QUOTE: "bg-orange-200 text-orange-900 border-orange-300 font-semibold",
   CLIENT_WANTS_DEMO: "bg-orange-50 text-orange-700 border-orange-200",
   CLIENT_WANTS_TO_DISCUSS_WITH_CORDON: "bg-navy-100 text-navy-600 border-navy-200",
+  CLOSED_WON: "bg-green-100 text-green-800 border-green-300 font-semibold",
   CLOSED_NOT_YET: "bg-navy-50 text-navy-400 border-navy-100",
   CLOSED_LOST: "bg-red-50 text-red-700 border-red-200",
 };
