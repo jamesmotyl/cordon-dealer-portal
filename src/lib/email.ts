@@ -1,16 +1,8 @@
-import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 
-const FROM_ADDRESS = process.env.EMAIL_FROM ?? "Cordon Dealer Portal <onboarding@resend.dev>";
-
-// Lazy client: don't throw at import time if the key isn't configured yet —
-// callers just skip sending (see sendNewLeadAlert).
-function getClient(): Resend | null {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return null;
-  return new Resend(apiKey);
-}
+const FROM_ADDRESS = process.env.EMAIL_FROM ?? "Cordon Dealer Portal <alerts@cordon.ai>";
+const POSTMARK_SEND_URL = "https://api.postmarkapp.com/email";
 
 // All current admins, not a hardcoded address list — anyone with
 // INTERNAL_ADMIN automatically gets alerts, including future admins.
@@ -28,9 +20,9 @@ export async function sendNewLeadAlert(lead: {
   legalName: string;
   dealerName: string;
 }) {
-  const client = getClient();
-  if (!client) {
-    console.log("RESEND_API_KEY not set — skipping new-lead email alert.");
+  const token = process.env.POSTMARK_SERVER_TOKEN;
+  if (!token) {
+    console.log("POSTMARK_SERVER_TOKEN not set — skipping new-lead email alert.");
     return;
   }
 
@@ -40,21 +32,35 @@ export async function sendNewLeadAlert(lead: {
   const portalUrl = process.env.NEXTAUTH_URL ?? "";
 
   try {
-    await client.emails.send({
-      from: FROM_ADDRESS,
-      to,
-      subject: `New lead: ${lead.farm} (${lead.dealerName})`,
-      text: [
-        `${lead.dealerName} submitted a new lead.`,
-        ``,
-        `Farm: ${lead.farm}`,
-        `Legal name: ${lead.legalName}`,
-        ``,
-        portalUrl ? `Review it: ${portalUrl}/admin/conflicts` : undefined,
-      ]
-        .filter(Boolean)
-        .join("\n"),
+    const res = await fetch(POSTMARK_SEND_URL, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-Postmark-Server-Token": token,
+      },
+      body: JSON.stringify({
+        From: FROM_ADDRESS,
+        To: to.join(","),
+        Subject: `New lead: ${lead.farm} (${lead.dealerName})`,
+        TextBody: [
+          `${lead.dealerName} submitted a new lead.`,
+          ``,
+          `Farm: ${lead.farm}`,
+          `Legal name: ${lead.legalName}`,
+          ``,
+          portalUrl ? `Review it: ${portalUrl}/admin/conflicts` : undefined,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        MessageStream: "outbound",
+      }),
     });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`Postmark send failed (${res.status}): ${body}`);
+    }
   } catch (err) {
     // Never let an email failure block lead submission.
     console.error("Failed to send new-lead alert email:", err);

@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    resendApiKeyConfigured: !!process.env.RESEND_API_KEY,
+    postmarkTokenConfigured: !!process.env.POSTMARK_SERVER_TOKEN,
     emailFrom: process.env.EMAIL_FROM ?? null,
   });
 }
