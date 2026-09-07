@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { hasLeadConflict, normalizeFarmName } from "@/lib/leadConflict";
 import { expireOverdueLeads } from "@/lib/leadTransitions";
+import { sendNewLeadAlert } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const user = await getSessionUser();
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   // Still computed for context in the activity log, but no longer decides
   // the outcome — every lead requires a Cordon admin decision now.
-  const [otherFarmLeads, internalPipelineHit] = await Promise.all([
+  const [otherFarmLeads, internalPipelineHit, dealer] = await Promise.all([
     prisma.lead.findMany({
       where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
       select: { dealerId: true, registrationState: true },
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
     prisma.internalPipelineEntry.findFirst({
       where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
     }),
+    prisma.dealer.findUnique({ where: { id: user.dealerId }, select: { name: true } }),
   ]);
   const conflict = hasLeadConflict(user.dealerId, otherFarmLeads, !!internalPipelineHit);
 
@@ -95,6 +97,13 @@ export async function POST(req: NextRequest) {
     });
 
     return created;
+  });
+
+  await sendNewLeadAlert({
+    id: lead.id,
+    farm: lead.farm,
+    legalName: lead.legalName,
+    dealerName: dealer?.name ?? "Unknown dealer",
   });
 
   return NextResponse.json({ lead }, { status: 201 });
