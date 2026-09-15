@@ -112,3 +112,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   return NextResponse.json({ lead: updated });
 }
+
+// Admin-only: permanently remove a lead (e.g. test/duplicate data entered by
+// mistake). Notes and ActivityLog rows cascade with it.
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "INTERNAL_ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const lead = await prisma.lead.findUnique({ where: { id: params.id } });
+  if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+
+  await prisma.lead.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ success: true });
+}

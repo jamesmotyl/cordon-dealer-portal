@@ -102,6 +102,20 @@ export default function LeadDetail({
     await patchLead({ registrationState: "REJECTED" });
   }
 
+  async function handleDelete() {
+    if (!confirm(`Permanently delete the lead for ${lead.farm}? This cannot be undone.`)) return;
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/leads/${lead.id}`, { method: "DELETE" });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Delete failed.");
+      return;
+    }
+    onUpdated();
+  }
+
   return (
     <div className="space-y-5 border-t border-navy-100 bg-navy-50/40 p-5">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -300,7 +314,18 @@ export default function LeadDetail({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        {isAdmin ? (
+          <button
+            className="text-sm text-red-600 hover:underline"
+            disabled={saving}
+            onClick={handleDelete}
+          >
+            Delete lead
+          </button>
+        ) : (
+          <span />
+        )}
         <button className="btn-primary" disabled={saving} onClick={handleSavePipeline}>
           Save changes
         </button>
