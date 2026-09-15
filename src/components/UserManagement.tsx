@@ -3,6 +3,7 @@
 import { useState } from "react";
 import CreateUserForm from "@/components/CreateUserForm";
 import DealerUsersList from "@/components/DealerUsersList";
+import AdminUsersList from "@/components/AdminUsersList";
 
 interface Dealer {
   id: string;
@@ -16,6 +17,7 @@ export default function UserManagement({ dealers }: { dealers: Dealer[] }) {
     <div className="mb-8 space-y-4">
       <CreateUserForm dealers={dealers} onCreated={() => setRefreshKey((k) => k + 1)} />
       <DealerUsersList refreshKey={refreshKey} />
+      <AdminUsersList refreshKey={refreshKey} />
     </div>
   );
 }
