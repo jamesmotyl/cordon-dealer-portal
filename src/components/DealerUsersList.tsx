@@ -57,6 +57,21 @@ export default function DealerUsersList({ refreshKey }: { refreshKey?: number })
     load();
   }
 
+  async function deleteUser(id: string, name: string) {
+    if (!confirm(`Permanently delete the account for ${name}? This cannot be undone.`)) return;
+    setBusyId(id);
+    setMessage(null);
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    setBusyId(null);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error || "Failed to delete user.");
+      return;
+    }
+    setMessage(`${name} has been removed.`);
+    load();
+  }
+
   if (loading) return null;
 
   return (
@@ -107,6 +122,13 @@ export default function DealerUsersList({ refreshKey }: { refreshKey?: number })
                       onClick={() => forceLogout(u.id, u.name)}
                     >
                       Force logout
+                    </button>
+                    <button
+                      className="btn-outline text-xs text-red-600"
+                      disabled={busyId === u.id}
+                      onClick={() => deleteUser(u.id, u.name)}
+                    >
+                      Delete
                     </button>
                   </div>
                 </td>
