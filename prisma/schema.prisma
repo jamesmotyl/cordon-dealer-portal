@@ -212,6 +212,20 @@ model InternalPipelineEntry {
   @@index([farm])
 }
 
+// Sales materials (brochures, pricing, case studies…) that Cordon admins share
+// with every dealer. Stored as a link to wherever the file already lives
+// (Drive, SharePoint, the website) — the portal doesn't host the files itself.
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   @default("General")
+  url         String
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+}
+
 model ActivityLog {
   id        String   @id @default(cuid())
   leadId    String

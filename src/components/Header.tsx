@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSessionUser } from "@/lib/session";
 import CordonLogo from "@/components/CordonLogo";
 import SignOutButton from "@/components/SignOutButton";
@@ -15,6 +16,16 @@ export default async function Header() {
             Portal &middot; {user?.role === "INTERNAL_ADMIN" ? "Admin" : "Dealer"} Portal
           </span>
         </div>
+        {user && (
+          <nav className="flex items-center gap-4 text-sm font-medium text-navy-400">
+            <Link href={user.role === "INTERNAL_ADMIN" ? "/admin" : "/dealer"} className="hover:text-navy">
+              Leads
+            </Link>
+            <Link href="/resources" className="hover:text-navy">
+              Resources
+            </Link>
+          </nav>
+        )}
         {user && (
           <div className="flex items-center gap-3">
             <div className="text-right leading-tight">
