@@ -7,6 +7,7 @@ import { isStaleDeal } from "@/lib/staleDeal";
 import { STALE_DEAL_DAYS } from "@/lib/config";
 import UserManagement from "@/components/UserManagement";
 import PasswordResetAlerts from "@/components/PasswordResetAlerts";
+import RetentionDue from "@/components/RetentionDue";
 
 export const dynamic = "force-dynamic";
 
@@ -193,6 +194,8 @@ export default async function AdminOverviewPage() {
             </div>
           </div>
         )}
+
+        <RetentionDue />
 
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">

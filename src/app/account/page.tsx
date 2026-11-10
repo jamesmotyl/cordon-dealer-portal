@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
 import Header from "@/components/Header";
@@ -21,6 +22,11 @@ export default async function AccountPage() {
         </div>
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">Change password</h2>
         <ChangePasswordForm />
+        <p className="mt-8 text-sm">
+          <Link href="/privacy" className="text-navy-400 hover:text-navy hover:underline">
+            Privacy notice
+          </Link>
+        </p>
       </main>
     </div>
   );

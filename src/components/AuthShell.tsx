@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CordonLogo from "@/components/CordonLogo";
 
 // Centered logo + card layout shared by the signed-out pages (login, forgot
@@ -11,6 +12,11 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
           <p className="mt-2 text-sm text-navy-400">Dealer Portal</p>
         </div>
         {children}
+        <p className="mt-6 text-center text-xs">
+          <Link href="/privacy" className="text-navy-400 hover:text-navy hover:underline">
+            Privacy notice
+          </Link>
+        </p>
       </div>
     </div>
   );
