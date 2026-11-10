@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { isStaleDeal } from "@/lib/staleDeal";
 import { STALE_DEAL_DAYS } from "@/lib/config";
 import UserManagement from "@/components/UserManagement";
+import PasswordResetAlerts from "@/components/PasswordResetAlerts";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +98,8 @@ export default async function AdminOverviewPage() {
             </Link>
           </div>
         </div>
+
+        <PasswordResetAlerts />
 
         <UserManagement dealers={dealers.map((d) => ({ id: d.id, name: d.name }))} />
 

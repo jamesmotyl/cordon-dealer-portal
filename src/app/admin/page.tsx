@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
 import Header from "@/components/Header";
 import LeadsBoard from "@/components/LeadsBoard";
+import PasswordResetAlerts from "@/components/PasswordResetAlerts";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function AdminPage() {
             </Link>
           </div>
         </div>
+        <PasswordResetAlerts />
         <LeadsBoard role="INTERNAL_ADMIN" />
       </main>
     </div>

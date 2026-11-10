@@ -5,6 +5,10 @@ export const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 // to spam someone's inbox.
 export const RESET_COOLDOWN_MS = 60 * 1000;
 
+// How long a reset request stays visible to admins as an alert — longer than
+// the link itself, so a request whose link expired unused is still noticed.
+export const RESET_ALERT_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 export function hashResetToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }

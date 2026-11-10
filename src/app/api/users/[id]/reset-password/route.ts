@@ -29,10 +29,14 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const newPassword = generatePassword();
   const passwordHash = await bcrypt.hash(newPassword, 10);
 
-  await prisma.user.update({
-    where: { id: params.id },
-    data: { passwordHash, sessionInvalidatedAt: new Date() },
-  });
+  // Also clears any pending emailed reset link, which resolves the admin alert.
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: params.id },
+      data: { passwordHash, sessionInvalidatedAt: new Date() },
+    }),
+    prisma.passwordResetToken.deleteMany({ where: { userId: params.id } }),
+  ]);
 
   return NextResponse.json({ password: newPassword });
 }
