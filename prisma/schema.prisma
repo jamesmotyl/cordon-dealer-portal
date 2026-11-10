@@ -87,9 +87,10 @@ model User {
   // invalid — checked on every request via the JWT callback.
   sessionInvalidatedAt DateTime?
 
-  approvedLeads Lead[]        @relation("ApprovedBy")
-  activityLogs  ActivityLog[]
-  notes         Note[]
+  approvedLeads        Lead[]               @relation("ApprovedBy")
+  activityLogs         ActivityLog[]
+  notes                Note[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@index([dealerId])
 }
@@ -210,6 +211,20 @@ model InternalPipelineEntry {
   createdAt DateTime @default(now())
 
   @@index([farm])
+}
+
+// One-time "forgot password" links. Only a hash of the token is stored, so a
+// database leak can't be used to reset anyone's password; the raw token only
+// ever exists in the emailed link.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Sales materials (brochures, pricing, case studies…) that Cordon admins share

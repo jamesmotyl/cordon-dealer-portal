@@ -8,8 +8,8 @@ export default async function Header() {
 
   return (
     <header className="border-b border-navy-100 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center gap-3">
           <CordonLogo className="h-6 w-auto" />
           <span className="hidden text-navy-300 sm:inline">/</span>
           <span className="hidden text-sm font-medium text-navy-400 sm:inline">
@@ -17,18 +17,21 @@ export default async function Header() {
           </span>
         </div>
         {user && (
-          <nav className="flex items-center gap-4 text-sm font-medium text-navy-400">
+          <nav className="flex items-center gap-2 text-xs font-medium text-navy-400 sm:gap-4 sm:text-sm">
             <Link href={user.role === "INTERNAL_ADMIN" ? "/admin" : "/dealer"} className="hover:text-navy">
               Leads
             </Link>
             <Link href="/resources" className="hover:text-navy">
               Resources
             </Link>
+            <Link href="/account" className="hover:text-navy">
+              Account
+            </Link>
           </nav>
         )}
         {user && (
           <div className="flex items-center gap-3">
-            <div className="text-right leading-tight">
+            <div className="hidden text-right leading-tight sm:block">
               <p className="text-sm font-medium text-navy">{user.name}</p>
               <p className="text-xs text-navy-400">
                 {user.role === "INTERNAL_ADMIN" ? "Cordon Admin" : "Dealer"}

@@ -1,13 +1,20 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import CordonLogo from "@/components/CordonLogo";
+import AuthShell from "@/components/AuthShell";
+
+const NOTICES: Record<string, string> = {
+  changed: "Password updated — sign in with your new password.",
+  reset: "Password reset — sign in with your new password.",
+};
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const notice = NOTICES[searchParams.get("notice") ?? ""];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,44 +44,43 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-navy-50 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <CordonLogo className="mx-auto h-10 w-auto" />
-          <p className="mt-2 text-sm text-navy-400">Dealer Portal</p>
+    <AuthShell>
+      <form onSubmit={handleSubmit} className="card space-y-4 p-6">
+        {notice && <p className="text-sm text-green-700">{notice}</p>}
+        <div>
+          <label className="label">Email</label>
+          <input
+            type="email"
+            required
+            autoFocus
+            className="input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label">Password</label>
+          <input
+            type="password"
+            required
+            className="input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="card space-y-4 p-6">
-          <div>
-            <label className="label">Email</label>
-            <input
-              type="email"
-              required
-              autoFocus
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="label">Password</label>
-            <input
-              type="password"
-              required
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-      </div>
-    </div>
+        <button type="submit" disabled={submitting} className="btn-primary w-full">
+          {submitting ? "Signing in…" : "Sign in"}
+        </button>
+        <p className="text-center text-sm">
+          <Link href="/forgot-password" className="text-navy-400 hover:text-navy hover:underline">
+            Forgot password?
+          </Link>
+        </p>
+      </form>
+    </AuthShell>
   );
 }
 

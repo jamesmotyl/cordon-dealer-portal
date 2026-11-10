@@ -14,22 +14,13 @@ async function adminEmails(): Promise<string[]> {
   return admins.map((a) => a.email);
 }
 
-export async function sendNewLeadAlert(lead: {
-  id: string;
-  farm: string;
-  legalName: string;
-  dealerName: string;
-}) {
+// Never throws: an email failure must not block whatever triggered it.
+async function sendEmail(to: string[], subject: string, textBody: string) {
   const token = process.env.POSTMARK_SERVER_TOKEN;
   if (!token) {
-    console.log("POSTMARK_SERVER_TOKEN not set — skipping new-lead email alert.");
+    console.log(`POSTMARK_SERVER_TOKEN not set — skipping email "${subject}".`);
     return;
   }
-
-  const to = await adminEmails();
-  if (to.length === 0) return;
-
-  const portalUrl = process.env.NEXTAUTH_URL ?? "";
 
   try {
     const res = await fetch(POSTMARK_SEND_URL, {
@@ -42,27 +33,60 @@ export async function sendNewLeadAlert(lead: {
       body: JSON.stringify({
         From: FROM_ADDRESS,
         To: to.join(","),
-        Subject: `New lead: ${lead.farm} (${lead.dealerName})`,
-        TextBody: [
-          `${lead.dealerName} submitted a new lead.`,
-          ``,
-          `Farm: ${lead.farm}`,
-          `Legal name: ${lead.legalName}`,
-          ``,
-          portalUrl ? `Review it: ${portalUrl}/admin/conflicts` : undefined,
-        ]
-          .filter(Boolean)
-          .join("\n"),
+        Subject: subject,
+        TextBody: textBody,
         MessageStream: "outbound",
       }),
     });
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      console.error(`Postmark send failed (${res.status}): ${body}`);
+      console.error(`Postmark send failed for "${subject}" (${res.status}): ${body}`);
     }
   } catch (err) {
-    // Never let an email failure block lead submission.
-    console.error("Failed to send new-lead alert email:", err);
+    console.error(`Failed to send email "${subject}":`, err);
   }
+}
+
+export async function sendNewLeadAlert(lead: {
+  id: string;
+  farm: string;
+  legalName: string;
+  dealerName: string;
+}) {
+  const to = await adminEmails();
+  if (to.length === 0) return;
+
+  const portalUrl = process.env.NEXTAUTH_URL ?? "";
+
+  await sendEmail(
+    to,
+    `New lead: ${lead.farm} (${lead.dealerName})`,
+    [
+      `${lead.dealerName} submitted a new lead.`,
+      ``,
+      `Farm: ${lead.farm}`,
+      `Legal name: ${lead.legalName}`,
+      ``,
+      portalUrl ? `Review it: ${portalUrl}/admin/conflicts` : undefined,
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
+}
+
+export async function sendPasswordResetEmail(user: { name: string; email: string }, resetUrl: string) {
+  await sendEmail(
+    [user.email],
+    "Reset your Cordon Dealer Portal password",
+    [
+      `Hi ${user.name},`,
+      ``,
+      `Someone asked to reset the password for your Cordon Dealer Portal account. Use this link to choose a new one (it works once and expires in 1 hour):`,
+      ``,
+      resetUrl,
+      ``,
+      `If you didn't ask for this, you can ignore this email — your password hasn't changed.`,
+    ].join("\n")
+  );
 }
