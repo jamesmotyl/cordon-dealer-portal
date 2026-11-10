@@ -85,18 +85,21 @@ export default function LeadDetail({
     });
   }
 
-  async function handleApprove() {
+  async function postAction(action: "approve" | "renew", failMessage: string) {
     setSaving(true);
     setError(null);
-    const res = await fetch(`/api/leads/${lead.id}/approve`, { method: "POST" });
+    const res = await fetch(`/api/leads/${lead.id}/${action}`, { method: "POST" });
     setSaving(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error || "Approval failed.");
+      setError(data.error || failMessage);
       return;
     }
     onUpdated();
   }
+
+  const handleApprove = () => postAction("approve", "Approval failed.");
+  const handleRenew = () => postAction("renew", "Renewal failed.");
 
   async function handleReject() {
     await patchLead({ registrationState: "REJECTED" });
@@ -138,11 +141,33 @@ export default function LeadDetail({
           <RegistrationBadge state={lead.registrationState} />
           {lead.expiresAt && (
             <p className="mt-1 text-xs text-navy-400">
-              Exclusivity expires {new Date(lead.expiresAt).toLocaleDateString()}
+              Exclusivity {lead.registrationState === "EXPIRED" ? "expired" : "expires"}{" "}
+              {new Date(lead.expiresAt).toLocaleDateString()}
             </p>
+          )}
+          {isAdmin && lead.registrationState === "CLEARED" && (
+            <button
+              className="mt-1 text-xs text-orange-600 hover:underline"
+              disabled={saving}
+              onClick={handleRenew}
+            >
+              Renew exclusivity
+            </button>
           )}
         </div>
       </div>
+
+      {isAdmin && lead.registrationState === "EXPIRED" && (
+        <div className="space-y-3 rounded-sm border border-orange-200 bg-orange-50 p-4">
+          <p className="text-sm font-semibold text-navy">
+            Exclusivity has expired — {lead.dealer.name} no longer holds this farm. Reinstate it if they&rsquo;re
+            still working this lead.
+          </p>
+          <button className="btn-accent" disabled={saving} onClick={handleRenew}>
+            Reinstate exclusivity
+          </button>
+        </div>
+      )}
 
       {isAdmin && lead.registrationState === "PENDING" && (
         <div className="space-y-3 rounded-sm border border-orange-200 bg-orange-50 p-4">

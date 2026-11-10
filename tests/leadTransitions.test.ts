@@ -1,7 +1,7 @@
 // Framework-free test cases, run via `tsx tests/leadTransitions.test.ts`.
 import assert from "node:assert";
 import { RegistrationState } from "@prisma/client";
-import { isValidTransition, isPastExpiry } from "../src/lib/leadTransitions";
+import { isValidTransition, isPastExpiry, canRenew } from "../src/lib/leadTransitions";
 
 let passed = 0;
 
@@ -58,6 +58,16 @@ test("a cleared lead not yet at its expires_at is not due to expire", () => {
 test("a rejected lead past its old expires_at does not get reopened to expired", () => {
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
   assert.strictEqual(isPastExpiry(RegistrationState.REJECTED, yesterday), false);
+});
+
+test("cleared and expired leads can be renewed", () => {
+  assert.strictEqual(canRenew(RegistrationState.CLEARED), true);
+  assert.strictEqual(canRenew(RegistrationState.EXPIRED), true);
+});
+
+test("pending and rejected leads can't be renewed", () => {
+  assert.strictEqual(canRenew(RegistrationState.PENDING), false);
+  assert.strictEqual(canRenew(RegistrationState.REJECTED), false);
 });
 
 console.log(`\n${passed} test(s) passed.`);

@@ -16,6 +16,16 @@ export function isValidTransition(from: RegistrationState, to: RegistrationState
   return VALID_TRANSITIONS[from].includes(to);
 }
 
+// A Cordon admin can renew exclusivity before it lapses (CLEARED) or reinstate
+// it after it has (EXPIRED). This deliberately isn't a transition above: it
+// always comes with a fresh expiry date, so a bare EXPIRED -> CLEARED edit
+// would just be swept straight back to EXPIRED.
+export function canRenew(registrationState: RegistrationState): boolean {
+  return (
+    registrationState === RegistrationState.CLEARED || registrationState === RegistrationState.EXPIRED
+  );
+}
+
 // States that still represent a live, unresolved exclusivity claim and can
 // therefore time out.
 const EXPIRABLE_STATES: RegistrationState[] = [RegistrationState.CLEARED];
