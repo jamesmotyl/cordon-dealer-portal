@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetAlert, sendPasswordResetEmail } from "@/lib/email";
 import { RESET_COOLDOWN_MS, generateResetToken, resetTokenExpiry } from "@/lib/resetToken";
 
 // Always answers the same way whether or not the email matches an account, so
@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
   const normalised = String(email ?? "").toLowerCase().trim();
 
   if (normalised) {
-    const user = await prisma.user.findUnique({ where: { email: normalised } });
+    const user = await prisma.user.findUnique({
+      where: { email: normalised },
+      include: { dealer: { select: { name: true } } },
+    });
 
     if (user) {
       const recent = await prisma.passwordResetToken.findFirst({
@@ -28,7 +31,10 @@ export async function POST(req: NextRequest) {
         ]);
 
         const baseUrl = process.env.NEXTAUTH_URL ?? "";
-        await sendPasswordResetEmail(user, `${baseUrl}/reset-password?token=${token}`);
+        await Promise.all([
+          sendPasswordResetEmail(user, `${baseUrl}/reset-password?token=${token}`),
+          sendPasswordResetAlert(user, user.dealer?.name ?? "Cordon"),
+        ]);
       }
     }
   }

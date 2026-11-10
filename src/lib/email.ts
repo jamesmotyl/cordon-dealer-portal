@@ -75,6 +75,29 @@ export async function sendNewLeadAlert(lead: {
   );
 }
 
+// Backup for when the user's own reset email doesn't land (spam, typo'd inbox,
+// provider hiccup): tells admins so they can reset the password by hand.
+export async function sendPasswordResetAlert(user: { name: string; email: string }, orgName: string) {
+  const to = await adminEmails();
+  if (to.length === 0) return;
+
+  const portalUrl = process.env.NEXTAUTH_URL ?? "";
+
+  await sendEmail(
+    to,
+    `Password reset requested: ${user.name} (${orgName})`,
+    [
+      `${user.name} <${user.email}> asked to reset their password. They've been emailed a reset link.`,
+      ``,
+      `If they can't get it to work, reset it by hand with the "Reset password" button next to them on the Users list, then send them the new password directly.`,
+      ``,
+      portalUrl ? `Users list: ${portalUrl}/admin/overview` : undefined,
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
+}
+
 export async function sendPasswordResetEmail(user: { name: string; email: string }, resetUrl: string) {
   await sendEmail(
     [user.email],
