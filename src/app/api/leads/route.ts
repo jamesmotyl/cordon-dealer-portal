@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
-import { hasLeadConflict, normalizeFarmName } from "@/lib/leadConflict";
 import { expireOverdueLeads } from "@/lib/leadTransitions";
 import { sendNewLeadAlert } from "@/lib/email";
 
@@ -56,22 +55,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Legal name and farm are required" }, { status: 400 });
   }
 
-  const normalizedFarm = normalizeFarmName(farm);
+  const dealer = await prisma.dealer.findUnique({ where: { id: user.dealerId }, select: { name: true } });
 
-  // Still computed for context in the activity log, but no longer decides
-  // the outcome — every lead requires a Cordon admin decision now.
-  const [otherFarmLeads, internalPipelineHit, dealer] = await Promise.all([
-    prisma.lead.findMany({
-      where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
-      select: { dealerId: true, registrationState: true },
-    }),
-    prisma.internalPipelineEntry.findFirst({
-      where: { farm: { equals: normalizedFarm, mode: "insensitive" } },
-    }),
-    prisma.dealer.findUnique({ where: { id: user.dealerId }, select: { name: true } }),
-  ]);
-  const conflict = hasLeadConflict(user.dealerId, otherFarmLeads, !!internalPipelineHit);
-
+  // Every lead requires a Cordon admin decision. The activity log is visible to
+  // the dealer, so it never hints at other dealers' claims on the same farm —
+  // admins spot same-farm leads on the Pending review screen instead.
   const lead = await prisma.$transaction(async (tx) => {
     const created = await tx.lead.create({
       data: {
@@ -90,9 +78,7 @@ export async function POST(req: NextRequest) {
         leadId: created.id,
         actorId: user.id,
         action: "Lead submitted",
-        detail: conflict
-          ? `${farm} conflicts with an existing lead or internal pipeline entry — flagged for Cordon review.`
-          : `${farm} submitted for Cordon review.`,
+        detail: `${farm} submitted for Cordon review.`,
       },
     });
 
