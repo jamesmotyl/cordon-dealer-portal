@@ -17,6 +17,7 @@ export async function GET() {
       name: true,
       email: true,
       sessionInvalidatedAt: true,
+      canViewCommission: true,
       dealer: { select: { id: true, name: true } },
     },
     orderBy: { name: "asc" },

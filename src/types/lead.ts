@@ -40,7 +40,17 @@ export interface LeadWithRelations {
   buyingProcess: string | null;
   finalApprover: string | null;
 
-  commission: number | null;
+  // Invoice details (shown once the quote is accepted or invoiced).
+  invoiceNumber: string | null;
+  invoicedAt: string | null;
+  invoiceNetGbp: number | null;
+  paidAt: string | null;
+
+  // Commission: only present at all when the viewer is a Cordon admin or has
+  // been given commission access — the API strips these fields otherwise.
+  commissionRatePercent?: number | null;
+  commission?: number | null;
+  commissionPaidAt?: string | null;
 
   dealerId: string;
   dealer: { id: string; name: string };

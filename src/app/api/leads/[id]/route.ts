@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { isValidTransition } from "@/lib/leadTransitions";
+import { parseRestrictedUpdate } from "@/lib/commission";
+import { redactLead } from "@/lib/commissionAccess";
 
 const REGISTRATION_LABELS: Record<RegistrationState, string> = {
   PENDING: "Pending Cordon Review",
@@ -86,8 +88,28 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   }
 
+  // Invoice and commission details: typed in by Cordon admins only. Commission
+  // changes are deliberately NOT written to the activity log, because dealers
+  // can read that log.
+  const restricted = parseRestrictedUpdate(body);
+  if (restricted.touched.length > 0) {
+    if (user.role !== "INTERNAL_ADMIN") {
+      return NextResponse.json({ error: "Only Cordon admins can change invoice or commission details" }, { status: 403 });
+    }
+    if (restricted.error) return NextResponse.json({ error: restricted.error }, { status: 400 });
+    Object.assign(data, restricted.data);
+
+    const newPaidAt = restricted.data.paidAt;
+    if (newPaidAt instanceof Date && newPaidAt.getTime() !== lead.paidAt?.getTime()) {
+      logEntries.push({
+        action: "Invoice marked paid",
+        detail: `Payment received ${newPaidAt.toLocaleDateString("en-GB")}.`,
+      });
+    }
+  }
+
   if (Object.keys(data).length === 0) {
-    return NextResponse.json({ lead });
+    return NextResponse.json({ lead: await redactLead(user, lead) });
   }
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -110,7 +132,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return result;
   });
 
-  return NextResponse.json({ lead: updated });
+  return NextResponse.json({ lead: await redactLead(user, updated) });
 }
 
 // Admin-only: permanently remove a lead (e.g. test/duplicate data entered by

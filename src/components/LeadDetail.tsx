@@ -11,6 +11,8 @@ import {
   taskStatusLabel,
 } from "@/components/Badges";
 import { type LeadWithRelations } from "@/types/lead";
+import InvoiceDetails from "@/components/InvoiceDetails";
+import CommissionDetails from "@/components/CommissionDetails";
 
 const STAGE_OPTIONS = Object.keys(STAGE_LABELS) as LeadStage[];
 const QUOTE_OPTIONS = Object.keys(QUOTE_LABELS) as QuoteStatus[];
@@ -338,6 +340,9 @@ export default function LeadDetail({
           </div>
         </div>
       </div>
+
+      <InvoiceDetails lead={lead} isAdmin={isAdmin} onUpdated={onUpdated} />
+      <CommissionDetails lead={lead} isAdmin={isAdmin} onUpdated={onUpdated} />
 
       <div className="flex items-center justify-between">
         {isAdmin ? (

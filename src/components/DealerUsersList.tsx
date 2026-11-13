@@ -7,6 +7,7 @@ interface DealerUser {
   name: string;
   email: string;
   sessionInvalidatedAt: string | null;
+  canViewCommission: boolean;
   dealer: { id: string; name: string } | null;
 }
 
@@ -57,6 +58,23 @@ export default function DealerUsersList({ refreshKey }: { refreshKey?: number })
     load();
   }
 
+  async function setCommissionAccess(id: string, name: string, allowed: boolean) {
+    setBusyId(id);
+    setMessage(null);
+    const res = await fetch(`/api/users/${id}/commission-access`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ allowed }),
+    });
+    setBusyId(null);
+    if (!res.ok) {
+      setMessage("Failed to change commission access.");
+      return;
+    }
+    setMessage(`${name} ${allowed ? "can now see" : "can no longer see"} commission on their company's leads.`);
+    load();
+  }
+
   async function deleteUser(id: string, name: string) {
     if (!confirm(`Permanently delete the account for ${name}? This cannot be undone.`)) return;
     setBusyId(id);
@@ -91,13 +109,14 @@ export default function DealerUsersList({ refreshKey }: { refreshKey?: number })
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Dealer</th>
+              <th className="px-4 py-3">Sees commission</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-navy-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-navy-400">
                   No dealer users yet.
                 </td>
               </tr>
@@ -107,6 +126,17 @@ export default function DealerUsersList({ refreshKey }: { refreshKey?: number })
                 <td className="px-4 py-3 font-medium text-navy">{u.name}</td>
                 <td className="px-4 py-3 text-navy-600">{u.email}</td>
                 <td className="px-4 py-3 text-navy-600">{u.dealer?.name ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <label className="flex items-center gap-2 text-navy-600">
+                    <input
+                      type="checkbox"
+                      checked={u.canViewCommission}
+                      disabled={busyId === u.id}
+                      onChange={(e) => setCommissionAccess(u.id, u.name, e.target.checked)}
+                    />
+                    {u.canViewCommission ? "Yes" : "No"}
+                  </label>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
                     <button

@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/session";
 import { RegistrationState } from "@prisma/client";
 import { expireOverdueLeads } from "@/lib/leadTransitions";
 import { sendNewLeadAlert } from "@/lib/email";
+import { redactLead, redactLeads } from "@/lib/commissionAccess";
 
 export async function GET(req: NextRequest) {
   const user = await getSessionUser();
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ leads });
+  return NextResponse.json({ leads: await redactLeads(user, leads) });
 }
 
 export async function POST(req: NextRequest) {
@@ -92,5 +93,5 @@ export async function POST(req: NextRequest) {
     dealerName: dealer?.name ?? "Unknown dealer",
   });
 
-  return NextResponse.json({ lead }, { status: 201 });
+  return NextResponse.json({ lead: await redactLead(user, lead) }, { status: 201 });
 }

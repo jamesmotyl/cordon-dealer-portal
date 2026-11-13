@@ -87,7 +87,11 @@ model User {
   // invalid — checked on every request via the JWT callback.
   sessionInvalidatedAt DateTime?
 
-  approvedLeads        Lead[]               @relation("ApprovedBy")
+  // Lets a dealer user see commission on their own company's leads. Cordon
+  // admins always can; everyone else defaults to no.
+  canViewCommission Boolean @default(false)
+
+  approvedLeads       Lead[]               @relation("ApprovedBy")
   activityLogs         ActivityLog[]
   notes                Note[]
   passwordResetTokens  PasswordResetToken[]
@@ -136,8 +140,20 @@ model Lead {
   buyingProcess String? // e.g. "committee vote", "single owner decision"
   finalApprover String? // who has the final say on the purchase
 
-  // Stubbed for phase 2 (commission tracking) — not surfaced in the UI yet.
-  commission Float?
+  // Invoice details, typed in by a Cordon admin once the quote is accepted.
+  // Cordon invoices the customer directly; invoiceNetGbp is the net amount
+  // (excl. VAT, discounts, shipping and support fees) that commission is based
+  // on, and paidAt is when Cordon received cleared payment.
+  invoiceNumber String?
+  invoicedAt    DateTime?
+  invoiceNetGbp Float?
+  paidAt        DateTime?
+
+  // Commission owed to the dealer. Restricted: only Cordon admins and users
+  // with User.canViewCommission ever get these fields back from the API.
+  commissionRatePercent Float?
+  commission            Float? // GBP
+  commissionPaidAt      DateTime?
 
   dealerId String
   dealer   Dealer @relation(fields: [dealerId], references: [id])
